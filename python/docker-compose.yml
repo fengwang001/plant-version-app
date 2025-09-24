@@ -1,0 +1,98 @@
+version: '3.8'
+
+services:
+  # FastAPI 应用
+  api:
+    build: .
+    ports:
+      - "8000:8000"
+    environment:
+      - DATABASE_URL=mysql+aiomysql://root:root@db:3306/j2eedb?charset=utf8mb4
+      - DATABASE_URL_SYNC=mysql+pymysql://root:root@db:3306/j2eedb?charset=utf8mb4
+      - REDIS_URL=redis://redis:6379/0
+      - CELERY_BROKER_URL=redis://redis:6379/1
+      - CELERY_RESULT_BACKEND=redis://redis:6379/2
+    depends_on:
+      - db
+      - redis
+    volumes:
+      - ./logs:/app/logs
+      - ./certs:/app/certs
+    restart: unless-stopped
+
+  # MySQL 数据库
+  db:
+    image: mysql:8.0
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: plant_ai
+      MYSQL_CHARSET: utf8mb4
+      MYSQL_COLLATION: utf8mb4_unicode_ci
+    volumes:
+      - mysql_data:/var/lib/mysql
+    ports:
+      - "3306:3306"
+    restart: unless-stopped
+    command: --default-authentication-plugin=mysql_native_password
+
+  # Redis 缓存
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    command: redis-server --appendonly yes
+    restart: unless-stopped
+
+  # Celery Worker
+  celery_worker:
+    build: .
+    command: celery -A app.tasks.celery_app worker --loglevel=info
+    environment:
+      - DATABASE_URL=mysql+aiomysql://root:root@db:3306/j2eedb?charset=utf8mb4
+      - DATABASE_URL_SYNC=mysql+pymysql://root:root@db:3306/j2eedb?charset=utf8mb4
+      - REDIS_URL=redis://redis:6379/0
+      - CELERY_BROKER_URL=redis://redis:6379/1
+      - CELERY_RESULT_BACKEND=redis://redis:6379/2
+    depends_on:
+      - db
+      - redis
+    volumes:
+      - ./logs:/app/logs
+      - ./certs:/app/certs
+    restart: unless-stopped
+
+  # Celery Beat (定时任务)
+  celery_beat:
+    build: .
+    command: celery -A app.tasks.celery_app beat --loglevel=info
+    environment:
+      - DATABASE_URL=mysql+aiomysql://root:root@db:3306/j2eedb?charset=utf8mb4
+      - DATABASE_URL_SYNC=mysql+pymysql://root:root@db:3306/j2eedb?charset=utf8mb4
+      - REDIS_URL=redis://redis:6379/0
+      - CELERY_BROKER_URL=redis://redis:6379/1
+      - CELERY_RESULT_BACKEND=redis://redis:6379/2
+    depends_on:
+      - db
+      - redis
+    volumes:
+      - ./logs:/app/logs
+    restart: unless-stopped
+
+  # Flower (Celery 监控)
+  flower:
+    build: .
+    command: celery -A app.tasks.celery_app flower --port=5555
+    ports:
+      - "5555:5555"
+    environment:
+      - CELERY_BROKER_URL=redis://redis:6379/1
+      - CELERY_RESULT_BACKEND=redis://redis:6379/2
+    depends_on:
+      - redis
+    restart: unless-stopped
+
+volumes:
+  mysql_data:
+  redis_data:
