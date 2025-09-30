@@ -1,4 +1,5 @@
 import 'package:get/get.dart';
+import '../../data/services/auth_service.dart';
 
 // 简化的用户模型
 class SimpleUser {
@@ -269,14 +270,21 @@ class ProfileController extends GetxController {
     return 0;
   }
 
+  /// 执行退出登录（调用 AuthService API）
   Future<void> executeLogout() async {
     try {
-      // 如果AuthService存在，调用logout
-      // final AuthService auth = Get.find<AuthService>();
-      // await auth.logout();
-      print('✅ 用户已退出登录');
+      print('🔄 ProfileController: 开始执行退出登录');
       
-      // 清空本地数据
+      // 获取 AuthService 实例
+      final authService = AuthService.instance;
+      
+      // 调用 AuthService 的 logout 方法
+      // 这会调用后端 API 并清除本地认证数据
+      await authService.logout();
+      
+      print('✅ ProfileController: AuthService.logout() 调用成功');
+      
+      // 清空本地用户数据
       currentUser.value = null;
       currentSubscription.value = null;
       creations.clear();
@@ -286,8 +294,31 @@ class ProfileController extends GetxController {
       aiVideosCount.value = 0;
       viewsCount.value = 0;
       isPremium.value = false;
+      
+      print('✅ ProfileController: 本地数据清除完成');
+      
     } catch (e) {
-      print('退出登录失败: $e');
+      print('❌ ProfileController: 退出登录失败: $e');
+      
+      // 即使 API 调用失败，也要清除本地数据
+      try {
+        currentUser.value = null;
+        currentSubscription.value = null;
+        creations.clear();
+        displayName.value = '';
+        avatarText.value = '';
+        creationsCount.value = 0;
+        aiVideosCount.value = 0;
+        viewsCount.value = 0;
+        isPremium.value = false;
+        
+        print('⚠️ ProfileController: API失败但本地数据已清除');
+      } catch (clearError) {
+        print('❌ ProfileController: 清除本地数据失败: $clearError');
+      }
+      
+      // 重新抛出异常，让 UI 层处理
+      rethrow;
     }
   }
 }

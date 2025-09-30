@@ -10,6 +10,7 @@ import 'package:flutter_application_1/presentation/pages/profile_page.dart';
 import 'package:flutter_application_1/presentation/pages/library_page.dart';
 import 'package:flutter_application_1/presentation/pages/discover_page.dart';
 import 'package:flutter_application_1/presentation/pages/create_page.dart';
+import 'package:flutter_application_1/presentation/pages/community_page.dart';
 import 'package:flutter_application_1/data/services/auth_service.dart';
 import 'package:flutter_application_1/presentation/controllers/home_controller.dart';
 import 'package:get/get.dart';
@@ -254,10 +255,12 @@ class _FitnessAppHomeScreenState extends State<FitnessAppHomeScreen>
         if (!mounted) return;
         
         setState(() {
-          if (index == 0 || index == 2) {
+          if (index == 0 ) {
             tabBody = HomePageNew(animationController: animationController);
           } else if (index == 1) {
             tabBody = TrainingScreen(animationController: animationController);
+          } else if (index == 2) {
+            tabBody = CommunityPage(animationController: animationController);
           } else if (index == 3) {
             tabBody = ProfilePage(animationController: animationController);
           }
