@@ -407,6 +407,174 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Species'**
   String get species;
+
+  /// No description provided for @greeting_morning.
+  ///
+  /// In en, this message translates to:
+  /// **'Good Morning!'**
+  String get greeting_morning;
+
+  /// No description provided for @home_subtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Which plant friend would you like to care for today?'**
+  String get home_subtitle;
+
+  /// No description provided for @search_plants.
+  ///
+  /// In en, this message translates to:
+  /// **'Search plants...'**
+  String get search_plants;
+
+  /// No description provided for @recommended_plants.
+  ///
+  /// In en, this message translates to:
+  /// **'Recommended Plants'**
+  String get recommended_plants;
+
+  /// No description provided for @my_plants.
+  ///
+  /// In en, this message translates to:
+  /// **'My Plants'**
+  String get my_plants;
+
+  /// No description provided for @no_plants_message.
+  ///
+  /// In en, this message translates to:
+  /// **'No plants added yet\nTap + to add your first plant friend'**
+  String get no_plants_message;
+
+  /// No description provided for @plant_succulent_name.
+  ///
+  /// In en, this message translates to:
+  /// **'Succulent'**
+  String get plant_succulent_name;
+
+  /// No description provided for @plant_succulent_description.
+  ///
+  /// In en, this message translates to:
+  /// **'Easy care, perfect for beginners'**
+  String get plant_succulent_description;
+
+  /// No description provided for @plant_pothos_name.
+  ///
+  /// In en, this message translates to:
+  /// **'Pothos'**
+  String get plant_pothos_name;
+
+  /// No description provided for @plant_pothos_description.
+  ///
+  /// In en, this message translates to:
+  /// **'Air purifying, fast growing'**
+  String get plant_pothos_description;
+
+  /// No description provided for @plant_cactus_name.
+  ///
+  /// In en, this message translates to:
+  /// **'Cactus'**
+  String get plant_cactus_name;
+
+  /// No description provided for @plant_cactus_description.
+  ///
+  /// In en, this message translates to:
+  /// **'Drought tolerant, unique shape'**
+  String get plant_cactus_description;
+
+  /// No description provided for @plant_mint_name.
+  ///
+  /// In en, this message translates to:
+  /// **'Mint'**
+  String get plant_mint_name;
+
+  /// No description provided for @plant_mint_description.
+  ///
+  /// In en, this message translates to:
+  /// **'Fresh fragrance, edible'**
+  String get plant_mint_description;
+
+  /// No description provided for @plant_snake_name.
+  ///
+  /// In en, this message translates to:
+  /// **'Snake Plant'**
+  String get plant_snake_name;
+
+  /// No description provided for @plant_snake_description.
+  ///
+  /// In en, this message translates to:
+  /// **'Air purifying, extremely easy care'**
+  String get plant_snake_description;
+
+  /// No description provided for @care_level_easy.
+  ///
+  /// In en, this message translates to:
+  /// **'Easy'**
+  String get care_level_easy;
+
+  /// No description provided for @care_level_medium.
+  ///
+  /// In en, this message translates to:
+  /// **'Medium'**
+  String get care_level_medium;
+
+  /// No description provided for @care_level_very_easy.
+  ///
+  /// In en, this message translates to:
+  /// **'Very Easy'**
+  String get care_level_very_easy;
+
+  /// No description provided for @sunlight_indirect.
+  ///
+  /// In en, this message translates to:
+  /// **'Indirect light'**
+  String get sunlight_indirect;
+
+  /// No description provided for @sunlight_scattered.
+  ///
+  /// In en, this message translates to:
+  /// **'Scattered light'**
+  String get sunlight_scattered;
+
+  /// No description provided for @sunlight_direct.
+  ///
+  /// In en, this message translates to:
+  /// **'Direct sunlight'**
+  String get sunlight_direct;
+
+  /// No description provided for @sunlight_partial.
+  ///
+  /// In en, this message translates to:
+  /// **'Partial sunlight'**
+  String get sunlight_partial;
+
+  /// No description provided for @sunlight_low.
+  ///
+  /// In en, this message translates to:
+  /// **'Low light'**
+  String get sunlight_low;
+
+  /// No description provided for @water_low.
+  ///
+  /// In en, this message translates to:
+  /// **'Less water'**
+  String get water_low;
+
+  /// No description provided for @water_moist.
+  ///
+  /// In en, this message translates to:
+  /// **'Keep moist'**
+  String get water_moist;
+
+  /// No description provided for @water_very_low.
+  ///
+  /// In en, this message translates to:
+  /// **'Very little water'**
+  String get water_very_low;
+
+  /// No description provided for @water_frequent.
+  ///
+  /// In en, this message translates to:
+  /// **'Water frequently'**
+  String get water_frequent;
 }
 
 class _AppLocalizationsDelegate

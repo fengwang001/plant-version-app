@@ -17,6 +17,8 @@ class LoginController extends GetxController {
   void onInit() {
     super.onInit();
     _authService = AuthService.instance;
+
+    print('🔐 LoginController-page 初始化完成');
   }
   
   /// 设置登录成功回调

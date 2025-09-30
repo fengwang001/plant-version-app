@@ -160,4 +160,88 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get species => '種';
+
+  @override
+  String get greeting_morning => 'おはようございます！';
+
+  @override
+  String get home_subtitle => '今日はどの植物の友達をお世話したいですか？';
+
+  @override
+  String get search_plants => '植物を検索...';
+
+  @override
+  String get recommended_plants => 'おすすめの植物';
+
+  @override
+  String get my_plants => '私の植物';
+
+  @override
+  String get no_plants_message => 'まだ植物が追加されていません\n+ をタップして最初の植物友達を追加してください';
+
+  @override
+  String get plant_succulent_name => '多肉植物';
+
+  @override
+  String get plant_succulent_description => 'お手入れ簡単、初心者に最適';
+
+  @override
+  String get plant_pothos_name => 'ポトス';
+
+  @override
+  String get plant_pothos_description => '空気清浄、成長が早い';
+
+  @override
+  String get plant_cactus_name => 'サボテン';
+
+  @override
+  String get plant_cactus_description => '乾燥に強く、独特な形';
+
+  @override
+  String get plant_mint_name => 'ミント';
+
+  @override
+  String get plant_mint_description => '爽やかな香り、食用可能';
+
+  @override
+  String get plant_snake_name => 'サンスベリア';
+
+  @override
+  String get plant_snake_description => '空気清浄、とても簡単なお手入れ';
+
+  @override
+  String get care_level_easy => '簡単';
+
+  @override
+  String get care_level_medium => '普通';
+
+  @override
+  String get care_level_very_easy => 'とても簡単';
+
+  @override
+  String get sunlight_indirect => '間接光';
+
+  @override
+  String get sunlight_scattered => '散乱光';
+
+  @override
+  String get sunlight_direct => '直射日光';
+
+  @override
+  String get sunlight_partial => '部分的な日光';
+
+  @override
+  String get sunlight_low => '低光量';
+
+  @override
+  String get water_low => '少量の水やり';
+
+  @override
+  String get water_moist => '湿潤を保つ';
+
+  @override
+  String get water_very_low => '非常に少ない水やり';
+
+  @override
+  String get water_frequent => '頻繁な水やり';
 }

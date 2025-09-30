@@ -121,7 +121,7 @@ class _MyHomePageNewState extends State<HomePageNew> with TickerProviderStateMix
               Text(
                 localizations.appName,
                 style: const TextStyle(
-                  fontSize: 32,
+                  fontSize: 21,
                   fontWeight: FontWeight.bold,
                   color: Color(0xFF2D3436),
                 ),

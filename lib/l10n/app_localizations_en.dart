@@ -160,4 +160,90 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get species => 'Species';
+
+  @override
+  String get greeting_morning => 'Good Morning!';
+
+  @override
+  String get home_subtitle =>
+      'Which plant friend would you like to care for today?';
+
+  @override
+  String get search_plants => 'Search plants...';
+
+  @override
+  String get recommended_plants => 'Recommended Plants';
+
+  @override
+  String get my_plants => 'My Plants';
+
+  @override
+  String get no_plants_message =>
+      'No plants added yet\nTap + to add your first plant friend';
+
+  @override
+  String get plant_succulent_name => 'Succulent';
+
+  @override
+  String get plant_succulent_description => 'Easy care, perfect for beginners';
+
+  @override
+  String get plant_pothos_name => 'Pothos';
+
+  @override
+  String get plant_pothos_description => 'Air purifying, fast growing';
+
+  @override
+  String get plant_cactus_name => 'Cactus';
+
+  @override
+  String get plant_cactus_description => 'Drought tolerant, unique shape';
+
+  @override
+  String get plant_mint_name => 'Mint';
+
+  @override
+  String get plant_mint_description => 'Fresh fragrance, edible';
+
+  @override
+  String get plant_snake_name => 'Snake Plant';
+
+  @override
+  String get plant_snake_description => 'Air purifying, extremely easy care';
+
+  @override
+  String get care_level_easy => 'Easy';
+
+  @override
+  String get care_level_medium => 'Medium';
+
+  @override
+  String get care_level_very_easy => 'Very Easy';
+
+  @override
+  String get sunlight_indirect => 'Indirect light';
+
+  @override
+  String get sunlight_scattered => 'Scattered light';
+
+  @override
+  String get sunlight_direct => 'Direct sunlight';
+
+  @override
+  String get sunlight_partial => 'Partial sunlight';
+
+  @override
+  String get sunlight_low => 'Low light';
+
+  @override
+  String get water_low => 'Less water';
+
+  @override
+  String get water_moist => 'Keep moist';
+
+  @override
+  String get water_very_low => 'Very little water';
+
+  @override
+  String get water_frequent => 'Water frequently';
 }

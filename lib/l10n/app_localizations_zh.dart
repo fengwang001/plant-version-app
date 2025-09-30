@@ -160,4 +160,88 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get species => '种';
+
+  @override
+  String get greeting_morning => '早上好！';
+
+  @override
+  String get home_subtitle => '今天想要照顾哪个植物朋友呢？';
+
+  @override
+  String get search_plants => '搜索植物...';
+
+  @override
+  String get recommended_plants => '推荐植物';
+
+  @override
+  String get my_plants => '我的植物';
+
+  @override
+  String get no_plants_message => '还没有添加植物\n点击 + 来添加你的第一个植物朋友';
+
+  @override
+  String get plant_succulent_name => '多肉植物';
+
+  @override
+  String get plant_succulent_description => '易于养护，适合新手';
+
+  @override
+  String get plant_pothos_name => '绿萝';
+
+  @override
+  String get plant_pothos_description => '净化空气，生长快速';
+
+  @override
+  String get plant_cactus_name => '仙人掌';
+
+  @override
+  String get plant_cactus_description => '耐旱性强，形态独特';
+
+  @override
+  String get plant_mint_name => '薄荷';
+
+  @override
+  String get plant_mint_description => '香气清新，可食用';
+
+  @override
+  String get plant_snake_name => '虎皮兰';
+
+  @override
+  String get plant_snake_description => '净化空气，极易养护';
+
+  @override
+  String get care_level_easy => '简单';
+
+  @override
+  String get care_level_medium => '中等';
+
+  @override
+  String get care_level_very_easy => '非常简单';
+
+  @override
+  String get sunlight_indirect => '间接阳光';
+
+  @override
+  String get sunlight_scattered => '散射光';
+
+  @override
+  String get sunlight_direct => '直射阳光';
+
+  @override
+  String get sunlight_partial => '部分阳光';
+
+  @override
+  String get sunlight_low => '低光照';
+
+  @override
+  String get water_low => '少量浇水';
+
+  @override
+  String get water_moist => '保持湿润';
+
+  @override
+  String get water_very_low => '很少浇水';
+
+  @override
+  String get water_frequent => '经常浇水';
 }

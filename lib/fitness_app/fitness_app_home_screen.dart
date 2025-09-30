@@ -11,6 +11,7 @@ import 'package:flutter_application_1/presentation/pages/library_page.dart';
 import 'package:flutter_application_1/presentation/pages/discover_page.dart';
 import 'package:flutter_application_1/presentation/pages/create_page.dart';
 import 'package:flutter_application_1/data/services/auth_service.dart';
+import 'package:flutter_application_1/presentation/controllers/home_controller.dart';
 import 'package:get/get.dart';
 
 class FitnessAppHomeScreen extends StatefulWidget {
@@ -203,7 +204,7 @@ class _FitnessAppHomeScreenState extends State<FitnessAppHomeScreen>
               ),
               SizedBox(height: 24),
               Text(
-                '11PlantVision',
+                'PlantVision',
                 style: TextStyle(
                   fontSize: 32,
                   fontWeight: FontWeight.bold,
@@ -279,10 +280,19 @@ class _FitnessAppHomeScreenState extends State<FitnessAppHomeScreen>
       bottom: 0,
       child: BottomBarView(
         tabIconsList: tabIconsList,
-        addClick: () {},
+        addClick: () => onAddClick(),
         changeIndex: (int index) => _handleTabChange(index),
       ),
     );
+  }
+
+  void onAddClick() {
+    print('➕ 底部导航栏添加按钮点击');
+    // 调用摄像头 扫描植物
+    final controller = Get.isRegistered<HomeController>()
+        ? Get.find<HomeController>()
+        : Get.put(HomeController());
+    controller.startPlantIdentification();
   }
 
   /// 导航到个人资料页面

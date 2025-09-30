@@ -108,7 +108,8 @@ class HomeController extends GetxController {
           colorText: Colors.white,
         );
         print('🔒 认证失败，但不执行路由跳转（由 FitnessAppHomeScreen 处理）');
-        return;
+        throw Exception('111122222222111112244444444');
+
       }
       
       // 处理超时错误
@@ -144,7 +145,8 @@ class HomeController extends GetxController {
       print('🌱 开始植物识别流程...');
       
       // 选择图片
-      final File? imageFile = await ImageService.showImageSourceDialog();
+  
+      final File? imageFile = await ImageService.showHalfScreenCameraScanDialog(Get.context!);
       if (imageFile == null) return;
 
       isIdentifying.value = true;
@@ -204,6 +206,8 @@ class HomeController extends GetxController {
       isIdentifying.value = false;
     }
   }
+
+  
 
   /// 加载推荐植物
   Future<void> loadFeaturedPlants() async {
@@ -319,3 +323,4 @@ class HomeController extends GetxController {
     }
   }
 }
+

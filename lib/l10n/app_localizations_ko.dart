@@ -160,4 +160,88 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get species => '종';
+
+  @override
+  String get greeting_morning => '좋은 아침입니다!';
+
+  @override
+  String get home_subtitle => '오늘은 어떤 식물 친구를 돌보고 싶으신가요?';
+
+  @override
+  String get search_plants => '식물 검색...';
+
+  @override
+  String get recommended_plants => '추천 식물';
+
+  @override
+  String get my_plants => '내 식물';
+
+  @override
+  String get no_plants_message => '아직 추가된 식물이 없습니다\n+ 를 눌러 첫 번째 식물 친구를 추가하세요';
+
+  @override
+  String get plant_succulent_name => '다육식물';
+
+  @override
+  String get plant_succulent_description => '관리가 쉬워 초보자에게 적합';
+
+  @override
+  String get plant_pothos_name => '스킨답서스';
+
+  @override
+  String get plant_pothos_description => '공기정화, 빠른 성장';
+
+  @override
+  String get plant_cactus_name => '선인장';
+
+  @override
+  String get plant_cactus_description => '가뭄에 강하고 독특한 모양';
+
+  @override
+  String get plant_mint_name => '민트';
+
+  @override
+  String get plant_mint_description => '상쾌한 향기, 식용 가능';
+
+  @override
+  String get plant_snake_name => '스네이크 플랜트';
+
+  @override
+  String get plant_snake_description => '공기정화, 매우 쉬운 관리';
+
+  @override
+  String get care_level_easy => '쉬움';
+
+  @override
+  String get care_level_medium => '보통';
+
+  @override
+  String get care_level_very_easy => '매우 쉬움';
+
+  @override
+  String get sunlight_indirect => '간접광';
+
+  @override
+  String get sunlight_scattered => '산란광';
+
+  @override
+  String get sunlight_direct => '직사광선';
+
+  @override
+  String get sunlight_partial => '부분 햇빛';
+
+  @override
+  String get sunlight_low => '저조도';
+
+  @override
+  String get water_low => '적게 급수';
+
+  @override
+  String get water_moist => '촉촉하게 유지';
+
+  @override
+  String get water_very_low => '매우 적게 급수';
+
+  @override
+  String get water_frequent => '자주 급수';
 }
