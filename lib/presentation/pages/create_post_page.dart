@@ -32,6 +32,7 @@ class CreatePostController extends GetxController {
   final RxInt privacyMode = 0.obs;
   final RxInt currentTab = 0.obs;
   final RxBool isLoadingMedia = true.obs;
+  final RxBool isPublishing = false.obs;
   
   final TextEditingController titleController = TextEditingController();
   final TextEditingController contentController = TextEditingController();
@@ -39,6 +40,18 @@ class CreatePostController extends GetxController {
   final TextEditingController plantController = TextEditingController();
   
   final ImagePicker _picker = ImagePicker();
+
+  // 常用标签
+  final List<String> popularTags = [
+    '#PlantCare',
+    '#GardeningTips',
+    '#IndoorPlants',
+    '#Succulents',
+    '#GreenThumb',
+    '#PlantParent',
+    '#UrbanJungle',
+    '#Monstera',
+  ];
 
   @override
   void onInit() {
@@ -72,6 +85,18 @@ class CreatePostController extends GetxController {
       MediaItem(
         id: 'img3',
         path: 'https://images.unsplash.com/photo-1501004318641-b39e6451bec6?w=400',
+      ),
+      MediaItem(
+        id: 'img4',
+        path: 'https://images.unsplash.com/photo-1509937528035-ad76254b0356?w=400',
+      ),
+      MediaItem(
+        id: 'img5',
+        path: 'https://images.unsplash.com/photo-1459411552884-841db9b3cc2a?w=400',
+      ),
+      MediaItem(
+        id: 'video1',
+        path: 'https://images.unsplash.com/photo-1416879595882-3373a0480b5b?w=400',
         isVideo: true,
       ),
     ];
@@ -87,12 +112,12 @@ class CreatePostController extends GetxController {
     if (selectedMediaIds.contains(mediaId)) {
       selectedMediaIds.remove(mediaId);
     } else {
-      if (selectedMediaIds.length < 3) {
+      if (selectedMediaIds.length < 9) {
         selectedMediaIds.add(mediaId);
       } else {
         Get.snackbar(
           '提示',
-          '最多只能选择3个媒体项',
+          '最多只能选择9个媒体项',
           snackPosition: SnackPosition.TOP,
           backgroundColor: Colors.orange.withOpacity(0.8),
           colorText: Colors.white,
@@ -105,6 +130,7 @@ class CreatePostController extends GetxController {
   void confirmMediaSelection() {
     if (selectedMediaIds.isEmpty) return;
     
+    // 将选中的媒体添加到图片列表（这里简化处理）
     Get.back();
     Get.snackbar(
       '已添加',
@@ -113,6 +139,7 @@ class CreatePostController extends GetxController {
       backgroundColor: AppTheme.primaryGreen.withOpacity(0.8),
       colorText: Colors.white,
       duration: const Duration(seconds: 1),
+      icon: const Icon(Icons.check_circle, color: Colors.white),
     );
   }
 
@@ -157,8 +184,22 @@ class CreatePostController extends GetxController {
 
   void addTag(String tag) {
     final trimmedTag = tag.trim();
-    if (trimmedTag.isNotEmpty && !tags.contains(trimmedTag)) {
-      final formattedTag = trimmedTag.startsWith('#') ? trimmedTag : '#$trimmedTag';
+    if (trimmedTag.isEmpty) return;
+    
+    final formattedTag = trimmedTag.startsWith('#') ? trimmedTag : '#$trimmedTag';
+    
+    if (!tags.contains(formattedTag)) {
+      if (tags.length >= 10) {
+        Get.snackbar(
+          '提示',
+          '最多只能添加10个标签',
+          snackPosition: SnackPosition.TOP,
+          backgroundColor: Colors.orange.withOpacity(0.8),
+          colorText: Colors.white,
+          duration: const Duration(seconds: 1),
+        );
+        return;
+      }
       tags.add(formattedTag);
       tagController.clear();
     }
@@ -180,45 +221,43 @@ class CreatePostController extends GetxController {
         snackPosition: SnackPosition.TOP,
         backgroundColor: Colors.orange.withOpacity(0.8),
         colorText: Colors.white,
+        icon: const Icon(Icons.warning_amber_rounded, color: Colors.white),
       );
       return;
     }
 
     try {
-      Get.dialog(
-        const Center(
-          child: CircularProgressIndicator(color: AppTheme.primaryGreen),
-        ),
-        barrierDismissible: false,
-      );
+      isPublishing.value = true;
 
+      // 模拟上传过程
       await Future.delayed(const Duration(seconds: 2));
 
-      Get.back();
+      isPublishing.value = false;
       Get.back();
       
       Get.snackbar(
         '发布成功',
         '你的帖子已成功发布',
         snackPosition: SnackPosition.TOP,
-        backgroundColor: AppTheme.primaryGreen.withOpacity(0.8),
+        backgroundColor: AppTheme.primaryGreen.withOpacity(0.9),
         colorText: Colors.white,
         duration: const Duration(seconds: 2),
         icon: const Icon(Icons.check_circle, color: Colors.white),
       );
     } catch (e) {
-      Get.back();
+      isPublishing.value = false;
       Get.snackbar(
         '发布失败',
         '发布帖子时出错: $e',
         snackPosition: SnackPosition.TOP,
         backgroundColor: Colors.red.withOpacity(0.8),
         colorText: Colors.white,
+        icon: const Icon(Icons.error_outline, color: Colors.white),
       );
     }
   }
 
-  bool get canPublish => selectedImages.isNotEmpty;
+  bool get canPublish => selectedImages.isNotEmpty && !isPublishing.value;
 }
 
 /// 创建帖子页面
@@ -247,12 +286,14 @@ class CreatePostPage extends StatelessWidget {
                       controller: controller.titleController,
                       hint: 'Add a title (optional)',
                       maxLines: 1,
+                      icon: Icons.title,
                     ),
                     const SizedBox(height: 16),
                     _buildTextField(
                       controller: controller.contentController,
                       hint: 'Describe your work or share a plant story...',
                       maxLines: 5,
+                      icon: Icons.notes,
                     ),
                     const SizedBox(height: 24),
                     _buildTagSection(controller),
@@ -276,7 +317,7 @@ class CreatePostPage extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
       decoration: BoxDecoration(
-        color: const Color(0xFFF6F8F7).withOpacity(0.8),
+        color: Colors.white,
         boxShadow: [
           BoxShadow(
             color: Colors.black.withOpacity(0.05),
@@ -288,14 +329,12 @@ class CreatePostPage extends StatelessWidget {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          TextButton(
+          TextButton.icon(
             onPressed: () => Get.back(),
-            child: const Text(
-              'Cancel',
-              style: TextStyle(
-                color: Color(0xFF122017),
-                fontSize: 16,
-              ),
+            icon: const Icon(Icons.close, size: 20),
+            label: const Text('Cancel'),
+            style: TextButton.styleFrom(
+              foregroundColor: const Color(0xFF122017),
             ),
           ),
           const Text(
@@ -308,16 +347,25 @@ class CreatePostPage extends StatelessWidget {
           ),
           Obx(() => TextButton(
             onPressed: controller.canPublish ? controller.publishPost : null,
-            child: Text(
-              'Post',
-              style: TextStyle(
-                color: controller.canPublish 
-                    ? AppTheme.primaryGreen 
-                    : Colors.grey,
-                fontSize: 16,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
+            child: controller.isPublishing.value
+                ? const SizedBox(
+                    width: 20,
+                    height: 20,
+                    child: CircularProgressIndicator(
+                      strokeWidth: 2,
+                      valueColor: AlwaysStoppedAnimation(AppTheme.primaryGreen),
+                    ),
+                  )
+                : Text(
+                    'Post',
+                    style: TextStyle(
+                      color: controller.canPublish 
+                          ? AppTheme.primaryGreen 
+                          : Colors.grey,
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
           )),
         ],
       ),
@@ -351,12 +399,12 @@ class CreatePostPage extends StatelessWidget {
     return TweenAnimationBuilder<double>(
       tween: Tween(begin: 0.0, end: 1.0),
       duration: Duration(milliseconds: 300 + (index * 50)),
-      curve: Curves.easeOut,
+      curve: Curves.easeOutBack,
       builder: (context, value, child) {
         return Opacity(
           opacity: value,
           child: Transform.scale(
-            scale: 0.8 + (value * 0.2),
+            scale: 0.7 + (value * 0.3),
             child: child,
           ),
         );
@@ -367,6 +415,13 @@ class CreatePostPage extends StatelessWidget {
             decoration: BoxDecoration(
               borderRadius: BorderRadius.circular(12),
               color: Colors.grey[200],
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.1),
+                  blurRadius: 8,
+                  offset: const Offset(0, 2),
+                ),
+              ],
               image: DecorationImage(
                 image: FileImage(controller.selectedImages[index]),
                 fit: BoxFit.cover,
@@ -374,15 +429,21 @@ class CreatePostPage extends StatelessWidget {
             ),
           ),
           Positioned(
-            top: 4,
-            right: 4,
+            top: 6,
+            right: 6,
             child: GestureDetector(
               onTap: () => controller.removeImage(index),
               child: Container(
-                padding: const EdgeInsets.all(2),
-                decoration: const BoxDecoration(
+                padding: const EdgeInsets.all(4),
+                decoration: BoxDecoration(
                   color: Colors.black54,
                   shape: BoxShape.circle,
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withOpacity(0.2),
+                      blurRadius: 4,
+                    ),
+                  ],
                 ),
                 child: const Icon(
                   Icons.close,
@@ -392,6 +453,26 @@ class CreatePostPage extends StatelessWidget {
               ),
             ),
           ),
+          if (index == 0)
+            Positioned(
+              bottom: 6,
+              left: 6,
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                decoration: BoxDecoration(
+                  color: AppTheme.primaryGreen,
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: const Text(
+                  'Cover',
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 10,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ),
+            ),
         ],
       ),
     );
@@ -407,23 +488,22 @@ class CreatePostPage extends StatelessWidget {
           border: Border.all(
             color: AppTheme.primaryGreen.withOpacity(0.3),
             width: 2,
-            style: BorderStyle.solid,
           ),
         ),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Icon(
-              Icons.add_circle_outline,
+              Icons.add_photo_alternate_outlined,
               size: 32,
-              color: AppTheme.primaryGreen.withOpacity(0.5),
+              color: AppTheme.primaryGreen.withOpacity(0.6),
             ),
             const SizedBox(height: 4),
             Text(
-              'Add more',
+              'Add Photo',
               style: TextStyle(
                 fontSize: 12,
-                color: Colors.grey[600],
+                color: Colors.grey[700],
                 fontWeight: FontWeight.w500,
               ),
             ),
@@ -444,6 +524,7 @@ class CreatePostPage extends StatelessWidget {
     required TextEditingController controller,
     required String hint,
     required int maxLines,
+    required IconData icon,
   }) {
     return TweenAnimationBuilder<double>(
       tween: Tween(begin: 0.0, end: 1.0),
@@ -465,15 +546,20 @@ class CreatePostPage extends StatelessWidget {
           hintText: hint,
           hintStyle: TextStyle(color: Colors.grey[500]),
           filled: true,
-          fillColor: AppTheme.primaryGreen.withOpacity(0.1),
+          fillColor: Colors.white,
+          prefixIcon: Icon(icon, color: AppTheme.primaryGreen.withOpacity(0.6)),
           border: OutlineInputBorder(
             borderRadius: BorderRadius.circular(12),
-            borderSide: BorderSide.none,
+            borderSide: BorderSide(color: Colors.grey[300]!),
+          ),
+          enabledBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(12),
+            borderSide: BorderSide(color: Colors.grey[300]!),
           ),
           focusedBorder: OutlineInputBorder(
             borderRadius: BorderRadius.circular(12),
-            borderSide: BorderSide(
-              color: AppTheme.primaryGreen.withOpacity(0.5),
+            borderSide: const BorderSide(
+              color: AppTheme.primaryGreen,
               width: 2,
             ),
           ),
@@ -500,22 +586,48 @@ class CreatePostPage extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          const Row(
+            children: [
+              Icon(Icons.local_offer, size: 18, color: AppTheme.primaryGreen),
+              SizedBox(width: 8),
+              Text(
+                'Tags',
+                style: TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
+                  color: Color(0xFF122017),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
           TextField(
             controller: controller.tagController,
             decoration: InputDecoration(
-              hintText: 'Add tags',
+              hintText: 'Add tags (e.g., PlantCare)',
               hintStyle: TextStyle(color: Colors.grey[500]),
               filled: true,
-              fillColor: AppTheme.primaryGreen.withOpacity(0.1),
+              fillColor: Colors.white,
               border: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(12),
-                borderSide: BorderSide.none,
+                borderSide: BorderSide(color: Colors.grey[300]!),
+              ),
+              enabledBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(12),
+                borderSide: BorderSide(color: Colors.grey[300]!),
+              ),
+              focusedBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(12),
+                borderSide: const BorderSide(
+                  color: AppTheme.primaryGreen,
+                  width: 2,
+                ),
               ),
               contentPadding: const EdgeInsets.all(16),
               suffixIcon: IconButton(
-                icon: Icon(
+                icon: const Icon(
                   Icons.add_circle,
-                  color: AppTheme.primaryGreen.withOpacity(0.5),
+                  color: AppTheme.primaryGreen,
                 ),
                 onPressed: () {
                   controller.addTag(controller.tagController.text);
@@ -525,6 +637,71 @@ class CreatePostPage extends StatelessWidget {
             onSubmitted: (value) => controller.addTag(value),
           ),
           const SizedBox(height: 12),
+          
+          // 常用标签建议
+          Obx(() {
+            if (controller.tags.length >= 10) return const SizedBox.shrink();
+            
+            return Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Popular Tags',
+                  style: TextStyle(
+                    fontSize: 12,
+                    color: Colors.grey[600],
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+                const SizedBox(height: 8),
+                Wrap(
+                  spacing: 8,
+                  runSpacing: 8,
+                  children: controller.popularTags
+                      .where((tag) => !controller.tags.contains(tag))
+                      .take(5)
+                      .map((tag) => GestureDetector(
+                            onTap: () => controller.addTag(tag),
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 12,
+                                vertical: 6,
+                              ),
+                              decoration: BoxDecoration(
+                                color: Colors.grey[200],
+                                borderRadius: BorderRadius.circular(16),
+                                border: Border.all(
+                                  color: Colors.grey[300]!,
+                                ),
+                              ),
+                              child: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Text(
+                                    tag,
+                                    style: TextStyle(
+                                      fontSize: 12,
+                                      color: Colors.grey[700],
+                                    ),
+                                  ),
+                                  const SizedBox(width: 4),
+                                  Icon(
+                                    Icons.add,
+                                    size: 14,
+                                    color: Colors.grey[600],
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ))
+                      .toList(),
+                ),
+                const SizedBox(height: 12),
+              ],
+            );
+          }),
+          
+          // 已添加的标签
           Obx(() {
             if (controller.tags.isEmpty) return const SizedBox.shrink();
             
@@ -538,10 +715,10 @@ class CreatePostPage extends StatelessWidget {
                   key: ValueKey(tag),
                   tween: Tween(begin: 0.0, end: 1.0),
                   duration: Duration(milliseconds: 200 + (index * 50)),
-                  curve: Curves.easeOut,
+                  curve: Curves.easeOutBack,
                   builder: (context, value, child) {
                     return Transform.scale(
-                      scale: 0.8 + (value * 0.2),
+                      scale: 0.7 + (value * 0.3),
                       child: Opacity(
                         opacity: value,
                         child: child,
@@ -551,11 +728,23 @@ class CreatePostPage extends StatelessWidget {
                   child: Container(
                     padding: const EdgeInsets.symmetric(
                       horizontal: 12,
-                      vertical: 6,
+                      vertical: 8,
                     ),
                     decoration: BoxDecoration(
-                      color: AppTheme.primaryGreen.withOpacity(0.2),
+                      gradient: LinearGradient(
+                        colors: [
+                          AppTheme.primaryGreen.withOpacity(0.8),
+                          AppTheme.primaryGreen,
+                        ],
+                      ),
                       borderRadius: BorderRadius.circular(20),
+                      boxShadow: [
+                        BoxShadow(
+                          color: AppTheme.primaryGreen.withOpacity(0.3),
+                          blurRadius: 8,
+                          offset: const Offset(0, 2),
+                        ),
+                      ],
                     ),
                     child: Row(
                       mainAxisSize: MainAxisSize.min,
@@ -564,17 +753,17 @@ class CreatePostPage extends StatelessWidget {
                           tag,
                           style: const TextStyle(
                             fontSize: 14,
-                            fontWeight: FontWeight.w500,
-                            color: Color(0xFF122017),
+                            fontWeight: FontWeight.w600,
+                            color: Colors.white,
                           ),
                         ),
-                        const SizedBox(width: 4),
+                        const SizedBox(width: 6),
                         GestureDetector(
                           onTap: () => controller.removeTag(tag),
-                          child: Icon(
-                            Icons.cancel,
+                          child: const Icon(
+                            Icons.close,
                             size: 16,
-                            color: Colors.grey[600],
+                            color: Colors.white,
                           ),
                         ),
                       ],
@@ -606,25 +795,42 @@ class CreatePostPage extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text(
-            'Associate Plant (Optional)',
-            style: TextStyle(
-              fontSize: 14,
-              fontWeight: FontWeight.w500,
-              color: Color(0xFF374151),
-            ),
+          const Row(
+            children: [
+              Icon(Icons.yard, size: 18, color: AppTheme.primaryGreen),
+              SizedBox(width: 8),
+              Text(
+                'Associate Plant (Optional)',
+                style: TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
+                  color: Color(0xFF122017),
+                ),
+              ),
+            ],
           ),
-          const SizedBox(height: 8),
+          const SizedBox(height: 12),
           TextField(
             controller: controller.plantController,
             decoration: InputDecoration(
-              hintText: 'Search for a plant',
+              hintText: 'Search for a plant species',
               hintStyle: TextStyle(color: Colors.grey[500]),
               filled: true,
-              fillColor: AppTheme.primaryGreen.withOpacity(0.1),
+              fillColor: Colors.white,
               border: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(12),
-                borderSide: BorderSide.none,
+                borderSide: BorderSide(color: Colors.grey[300]!),
+              ),
+              enabledBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(12),
+                borderSide: BorderSide(color: Colors.grey[300]!),
+              ),
+              focusedBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(12),
+                borderSide: const BorderSide(
+                  color: AppTheme.primaryGreen,
+                  width: 2,
+                ),
               ),
               contentPadding: const EdgeInsets.all(16),
               suffixIcon: Icon(Icons.search, color: Colors.grey[500]),
@@ -652,20 +858,27 @@ class CreatePostPage extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text(
-            'Privacy (Optional)',
-            style: TextStyle(
-              fontSize: 14,
-              fontWeight: FontWeight.w500,
-              color: Color(0xFF374151),
-            ),
+          const Row(
+            children: [
+              Icon(Icons.privacy_tip, size: 18, color: AppTheme.primaryGreen),
+              SizedBox(width: 8),
+              Text(
+                'Privacy',
+                style: TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
+                  color: Color(0xFF122017),
+                ),
+              ),
+            ],
           ),
-          const SizedBox(height: 8),
+          const SizedBox(height: 12),
           Obx(() => Container(
-            padding: const EdgeInsets.all(8),
+            padding: const EdgeInsets.all(4),
             decoration: BoxDecoration(
-              color: AppTheme.primaryGreen.withOpacity(0.1),
+              color: Colors.white,
               borderRadius: BorderRadius.circular(12),
+              border: Border.all(color: Colors.grey[300]!),
             ),
             child: Row(
               children: [
@@ -714,17 +927,8 @@ class CreatePostPage extends StatelessWidget {
         curve: Curves.easeOut,
         padding: const EdgeInsets.symmetric(vertical: 12),
         decoration: BoxDecoration(
-          color: isSelected ? Colors.white : Colors.transparent,
+          color: isSelected ? AppTheme.primaryGreen.withOpacity(0.1) : Colors.transparent,
           borderRadius: BorderRadius.circular(8),
-          boxShadow: isSelected
-              ? [
-                  BoxShadow(
-                    color: Colors.black.withOpacity(0.08),
-                    blurRadius: 8,
-                    offset: const Offset(0, 2),
-                  ),
-                ]
-              : null,
         ),
         child: Column(
           children: [
@@ -739,7 +943,7 @@ class CreatePostPage extends StatelessWidget {
               style: TextStyle(
                 fontSize: 12,
                 fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
-                color: isSelected ? const Color(0xFF122017) : Colors.grey[600],
+                color: isSelected ? AppTheme.primaryGreen : Colors.grey[600],
               ),
             ),
           ],
@@ -752,44 +956,60 @@ class CreatePostPage extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: const Color(0xFFF6F8F7),
-        border: Border(
-          top: BorderSide(
-            color: AppTheme.primaryGreen.withOpacity(0.2),
-            width: 1,
+        color: Colors.white,
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.05),
+            offset: const Offset(0, -2),
+            blurRadius: 8,
           ),
-        ),
+        ],
       ),
-      child: Obx(() => Container(
+      child: Obx(() => AnimatedContainer(
+        duration: const Duration(milliseconds: 300),
         width: double.infinity,
         height: 56,
         decoration: BoxDecoration(
-          gradient: const LinearGradient(
-            colors: [AppTheme.primaryGreen, Color(0xFF00D2A4)],
-          ),
+          gradient: controller.canPublish
+              ? const LinearGradient(
+                  colors: [AppTheme.primaryGreen, Color(0xFF00D2A4)],
+                )
+              : null,
+          color: controller.canPublish ? null : Colors.grey[300],
           borderRadius: BorderRadius.circular(16),
-          boxShadow: [
-            BoxShadow(
-              color: AppTheme.primaryGreen.withOpacity(0.3),
-              offset: const Offset(0, 8),
-              blurRadius: 20,
-            ),
-          ],
+          boxShadow: controller.canPublish
+              ? [
+                  BoxShadow(
+                    color: AppTheme.primaryGreen.withOpacity(0.3),
+                    offset: const Offset(0, 8),
+                    blurRadius: 20,
+                  ),
+                ]
+              : null,
         ),
         child: Material(
           color: Colors.transparent,
           child: InkWell(
             onTap: controller.canPublish ? controller.publishPost : null,
             borderRadius: BorderRadius.circular(16),
-            child: const Center(
-              child: Text(
-                'Post',
-                style: TextStyle(
-                  color: Colors.white,
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
+            child: Center(
+              child: controller.isPublishing.value
+                  ? const SizedBox(
+                      width: 24,
+                      height: 24,
+                      child: CircularProgressIndicator(
+                        strokeWidth: 3,
+                        valueColor: AlwaysStoppedAnimation(Colors.white),
+                      ),
+                    )
+                  : const Text(
+                      'Publish Post',
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
             ),
           ),
         ),
@@ -853,12 +1073,15 @@ class MediaSelectionModal extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        border: Border(
-          bottom: BorderSide(
-            color: AppTheme.primaryGreen.withOpacity(0.2),
-            width: 1,
+        color: Colors.white,
+        borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.05),
+            offset: const Offset(0, 2),
+            blurRadius: 8,
           ),
-        ),
+        ],
       ),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -869,7 +1092,7 @@ class MediaSelectionModal extends StatelessWidget {
               Get.back();
             },
             child: const Text(
-              '取消',
+              'Cancel',
               style: TextStyle(
                 color: Color(0xFF122017),
                 fontSize: 16,
@@ -877,7 +1100,7 @@ class MediaSelectionModal extends StatelessWidget {
             ),
           ),
           const Text(
-            '选择媒体',
+            'Select Media',
             style: TextStyle(
               fontSize: 18,
               fontWeight: FontWeight.bold,
@@ -889,11 +1112,11 @@ class MediaSelectionModal extends StatelessWidget {
                 ? controller.confirmMediaSelection
                 : null,
             child: Text(
-              '完成',
+              'Done',
               style: TextStyle(
                 color: controller.selectedMediaIds.isNotEmpty
                     ? AppTheme.primaryGreen
-                    : AppTheme.primaryGreen.withOpacity(0.3),
+                    : Colors.grey,
                 fontSize: 16,
                 fontWeight: FontWeight.bold,
               ),
@@ -910,18 +1133,20 @@ class MediaSelectionModal extends StatelessWidget {
       
       return Container(
         decoration: BoxDecoration(
-          border: Border(
-            bottom: BorderSide(
-              color: AppTheme.primaryGreen.withOpacity(0.2),
-              width: 1,
+          color: Colors.white,
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.05),
+              offset: const Offset(0, 2),
+              blurRadius: 4,
             ),
-          ),
+          ],
         ),
         child: Row(
           children: [
-            _buildTab('手机相册', 0, currentTab),
-            _buildTab('我的识别记录', 1, currentTab),
-            _buildTab('从AI视频选择', 2, currentTab),
+            _buildTab('Phone Gallery', 0, currentTab),
+            _buildTab('Identified', 1, currentTab),
+            _buildTab('AI Videos', 2, currentTab),
           ],
         ),
       );
@@ -942,7 +1167,7 @@ class MediaSelectionModal extends StatelessWidget {
             border: Border(
               bottom: BorderSide(
                 color: isSelected ? AppTheme.primaryGreen : Colors.transparent,
-                width: 2,
+                width: 3,
               ),
             ),
           ),
@@ -969,8 +1194,8 @@ class MediaSelectionModal extends StatelessWidget {
         child: currentTab == 0
             ? _buildPhoneGallery()
             : currentTab == 1
-                ? _buildEmptyState('No identification records found.')
-                : _buildEmptyState('No AI videos found.'),
+                ? _buildEmptyState('No identified plants yet.', Icons.search_off)
+                : _buildEmptyState('No AI videos found.', Icons.video_library_outlined),
       );
     });
   }
@@ -1013,16 +1238,16 @@ class MediaSelectionModal extends StatelessWidget {
           curve: Curves.easeOut,
           builder: (context, value, child) {
             return Opacity(
-              opacity: value,
-              child: Transform.translate(
-                offset: Offset(0, 10 * (1 - value)),
+              opacity: 0.3 + (value * 0.7),
+              child: Transform.scale(
+                scale: 0.9 + (value * 0.1),
                 child: child,
               ),
             );
           },
           child: Container(
             decoration: BoxDecoration(
-              color: const Color(0xFFE5E7EB),
+              color: Colors.grey[300],
               borderRadius: BorderRadius.circular(12),
             ),
           ),
@@ -1042,8 +1267,8 @@ class MediaSelectionModal extends StatelessWidget {
         builder: (context, value, child) {
           return Opacity(
             opacity: value,
-            child: Transform.translate(
-              offset: Offset(0, 10 * (1 - value)),
+            child: Transform.scale(
+              scale: 0.8 + (value * 0.2),
               child: child,
             ),
           );
@@ -1059,7 +1284,7 @@ class MediaSelectionModal extends StatelessWidget {
                   borderRadius: BorderRadius.circular(12),
                   border: Border.all(
                     color: isSelected ? AppTheme.primaryGreen : Colors.transparent,
-                    width: 2,
+                    width: 3,
                   ),
                 ),
                 child: ClipRRect(
@@ -1110,7 +1335,7 @@ class MediaSelectionModal extends StatelessWidget {
                   child: TweenAnimationBuilder<double>(
                     tween: Tween(begin: 0.0, end: 1.0),
                     duration: const Duration(milliseconds: 200),
-                    curve: Curves.easeOut,
+                    curve: Curves.easeOutBack,
                     builder: (context, value, child) {
                       return Transform.scale(
                         scale: value,
@@ -1138,13 +1363,13 @@ class MediaSelectionModal extends StatelessWidget {
     });
   }
 
-  Widget _buildEmptyState(String message) {
+  Widget _buildEmptyState(String message, IconData icon) {
     return Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           Icon(
-            Icons.search_off_rounded,
+            icon,
             size: 64,
             color: Colors.grey[400],
           ),
@@ -1170,13 +1395,15 @@ class MediaSelectionModal extends StatelessWidget {
         curve: Curves.easeOut,
         height: hasSelection ? 80 : 0,
         decoration: BoxDecoration(
-          color: const Color(0xFFF6F8F7).withOpacity(0.8),
-          border: Border(
-            top: BorderSide(
-              color: AppTheme.primaryGreen.withOpacity(0.2),
-              width: 1,
+          color: Colors.white,
+          borderRadius: const BorderRadius.vertical(bottom: Radius.circular(20)),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.05),
+              offset: const Offset(0, -2),
+              blurRadius: 8,
             ),
-          ),
+          ],
         ),
         child: hasSelection
             ? Padding(
@@ -1185,7 +1412,7 @@ class MediaSelectionModal extends StatelessWidget {
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     Text(
-                      '${controller.selectedMediaIds.length} item${controller.selectedMediaIds.length > 1 ? 's' : ''} selected',
+                      '${controller.selectedMediaIds.length} selected',
                       style: const TextStyle(
                         fontSize: 14,
                         fontWeight: FontWeight.w500,
@@ -1207,7 +1434,7 @@ class MediaSelectionModal extends StatelessWidget {
                         elevation: 0,
                       ),
                       child: const Text(
-                        '确定',
+                        'Add to Post',
                         style: TextStyle(
                           fontSize: 16,
                           fontWeight: FontWeight.bold,

@@ -13,6 +13,7 @@ import 'package:flutter_application_1/presentation/pages/create_page.dart';
 import 'package:flutter_application_1/presentation/pages/community_page.dart';
 import 'package:flutter_application_1/data/services/auth_service.dart';
 import 'package:flutter_application_1/presentation/controllers/home_controller.dart';
+import 'package:flutter_application_1/presentation/pages/explore_page.dart';
 import 'package:get/get.dart';
 
 class FitnessAppHomeScreen extends StatefulWidget {
@@ -258,9 +259,11 @@ class _FitnessAppHomeScreenState extends State<FitnessAppHomeScreen>
           if (index == 0 ) {
             tabBody = HomePageNew(animationController: animationController);
           } else if (index == 1) {
-            tabBody = TrainingScreen(animationController: animationController);
+            // tabBody = TrainingScreen(animationController: animationController);
+             tabBody = ExplorePage(animationController: animationController);
           } else if (index == 2) {
-            tabBody = CommunityPage(animationController: animationController);
+            // tabBody = CommunityPage(animationController: animationController);
+            tabBody = CommunityPage();
           } else if (index == 3) {
             tabBody = ProfilePage(animationController: animationController);
           }
