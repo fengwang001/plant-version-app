@@ -260,7 +260,7 @@ class _FitnessAppHomeScreenState extends State<FitnessAppHomeScreen>
             tabBody = HomePageNew(animationController: animationController);
           } else if (index == 1) {
             // tabBody = TrainingScreen(animationController: animationController);
-             tabBody = ExplorePage(animationController: animationController);
+             tabBody = ExplorePage();
           } else if (index == 2) {
             // tabBody = CommunityPage(animationController: animationController);
             tabBody = CommunityPage();
