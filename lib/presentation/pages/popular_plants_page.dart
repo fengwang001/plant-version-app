@@ -2,9 +2,10 @@ import 'package:flutter/material.dart';
 import 'dart:ui';
 import 'package:flutter_application_1/presentation/pages/plant_detail_page.dart';
 
+/// 热门植物页面 - 展示植物网格列表
 class PopularPlantsPage extends StatefulWidget {
-  final String title;
-  final String category;
+  final String title; // 页面标题
+  final String category; // 分类名称
   
   const PopularPlantsPage({
     Key? key, 
@@ -17,18 +18,27 @@ class PopularPlantsPage extends StatefulWidget {
 }
 
 class _PopularPlantsPageState extends State<PopularPlantsPage> with TickerProviderStateMixin {
+  // 搜索框控制器
   late final TextEditingController _searchController;
+  // 滚动控制器
   final ScrollController _scrollController = ScrollController();
   
+  // 是否显示筛选模态框
   bool _showFilterModal = false;
+  // 是否正在加载
   bool _isLoading = false;
   
+  // 当前选中的排序方式
   String _selectedSort = 'popular';
+  // 选中的植物类型
   final List<String> _selectedPlantTypes = [];
+  // 选中的内容类型
   final List<String> _selectedContentTypes = [];
 
+  // 淡入淡出动画控制器
   late AnimationController _fadeController;
   
+  // 植物数据列表
   final List<PlantItem> _plants = [
     PlantItem(
       name: 'Monstera Deliciosa',
@@ -87,6 +97,7 @@ class _PopularPlantsPageState extends State<PopularPlantsPage> with TickerProvid
     // 初始化搜索框内容为分类名称
     _searchController = TextEditingController(text: widget.category);
     
+    // 初始化淡入淡出动画
     _fadeController = AnimationController(
       duration: const Duration(milliseconds: 300),
       vsync: this,
@@ -102,22 +113,27 @@ class _PopularPlantsPageState extends State<PopularPlantsPage> with TickerProvid
     super.dispose();
   }
 
+  /// 应用筛选条件
   void _applyFilters() {
     setState(() {
       _isLoading = true;
       _showFilterModal = false;
     });
     
+    // 淡出后延迟再淡入，模拟加载效果
     _fadeController.reverse().then((_) {
       Future.delayed(const Duration(milliseconds: 300), () {
-        setState(() {
-          _isLoading = false;
-        });
-        _fadeController.forward();
+        if (mounted) {
+          setState(() {
+            _isLoading = false;
+          });
+          _fadeController.forward();
+        }
       });
     });
   }
 
+  /// 重置所有筛选条件
   void _resetFilters() {
     setState(() {
       _selectedSort = 'popular';
@@ -140,14 +156,13 @@ class _PopularPlantsPageState extends State<PopularPlantsPage> with TickerProvid
                   controller: _scrollController,
                   physics: const BouncingScrollPhysics(),
                   child: Padding(
-                    padding: const EdgeInsets.all(16),
+                    padding: const EdgeInsets.fromLTRB(12, 12, 12, 16),
                     child: Column(
                       children: [
                         _buildSearchAndFilter(),
-                        const SizedBox(height: 16),
+                        const SizedBox(height: 12),
                         _buildGridContent(),
                         if (_isLoading) _buildLoadingIndicator(),
-                        const SizedBox(height: 80),
                       ],
                     ),
                   ),
@@ -155,13 +170,14 @@ class _PopularPlantsPageState extends State<PopularPlantsPage> with TickerProvid
               ),
             ],
           ),
-          // _buildBottomNavigation(),
+          // 筛选模态框
           if (_showFilterModal) _buildFilterModal(),
         ],
       ),
     );
   }
 
+  /// 构建顶部标题栏
   Widget _buildHeader() {
     return Container(
       decoration: BoxDecoration(
@@ -176,25 +192,29 @@ class _PopularPlantsPageState extends State<PopularPlantsPage> with TickerProvid
           child: SafeArea(
             child: Container(
               height: 56,
-              padding: const EdgeInsets.symmetric(horizontal: 16),
+              padding: const EdgeInsets.symmetric(horizontal: 8),
               child: Row(
                 children: [
+                  // 返回按钮
                   IconButton(
                     icon: const Icon(Icons.arrow_back_ios_new, size: 20),
                     onPressed: () => Navigator.pop(context),
+                    padding: const EdgeInsets.all(8),
                   ),
+                  // 页面标题
                   Expanded(
                     child: Text(
                       widget.title,
                       style: const TextStyle(
-                        fontSize: 18,
+                        fontSize: 17,
                         fontWeight: FontWeight.bold,
                         color: Color(0xFF122017),
                       ),
                       textAlign: TextAlign.center,
+                      overflow: TextOverflow.ellipsis,
                     ),
                   ),
-                  const SizedBox(width: 40),
+                  const SizedBox(width: 48), // 平衡左侧按钮宽度
                 ],
               ),
             ),
@@ -204,65 +224,99 @@ class _PopularPlantsPageState extends State<PopularPlantsPage> with TickerProvid
     );
   }
 
+  /// 构建搜索框和筛选按钮
   Widget _buildSearchAndFilter() {
     return Row(
       children: [
+        // 搜索框
         Expanded(
           child: Container(
+            height: 48,
             decoration: BoxDecoration(
-              color: const Color(0xFF122017).withOpacity(0.05),
+              color: Colors.white,
               borderRadius: BorderRadius.circular(24),
+              border: Border.all(color: const Color(0xFFE5E7EB)),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.05),
+                  blurRadius: 8,
+                  offset: const Offset(0, 2),
+                ),
+              ],
             ),
-            child: TextField(
-              controller: _searchController,
-              decoration: InputDecoration(
-                hintText: 'Search in ${widget.title}',
-                hintStyle: TextStyle(
-                  color: const Color(0xFF122017).withOpacity(0.5),
-                  fontSize: 15,
+            child: Row(
+              children: [
+                // 搜索图标
+                Padding(
+                  padding: const EdgeInsets.only(left: 16, right: 12),
+                  child: Icon(
+                    Icons.search,
+                    color: Colors.grey[400],
+                    size: 20,
+                  ),
                 ),
-                prefixIcon: Icon(
-                  Icons.search,
-                  color: const Color(0xFF122017).withOpacity(0.5),
-                  size: 20,
+                // 输入框
+                Expanded(
+                  child: TextField(
+                    controller: _searchController,
+                    style: const TextStyle(fontSize: 15),
+                    decoration: InputDecoration(
+                      hintText: 'Search for plants',
+                      hintStyle: TextStyle(color: Colors.grey[400], fontSize: 15),
+                      border: InputBorder.none,
+                      contentPadding: const EdgeInsets.only(bottom: 1), // 微调使光标居中
+                    ),
+                    onChanged: (_) {
+                      setState(() {});
+                    },
+                  ),
                 ),
-                suffixIcon: _searchController.text.isNotEmpty
-                    ? IconButton(
-                        icon: Icon(
-                          Icons.clear,
-                          color: const Color(0xFF122017).withOpacity(0.5),
-                          size: 20,
-                        ),
-                        onPressed: () {
-                          setState(() {
-                            _searchController.clear();
-                          });
-                        },
-                      )
-                    : null,
-                border: InputBorder.none,
-                contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-              ),
-              onChanged: (_) {
-                setState(() {});
-              },
+                // 清除按钮（仅在有文字时显示）
+                if (_searchController.text.isNotEmpty)
+                  GestureDetector(
+                    onTap: () {
+                      setState(() {
+                        _searchController.clear();
+                      });
+                    },
+                    child: Padding(
+                      padding: const EdgeInsets.only(right: 16),
+                      child: Icon(
+                        Icons.cancel,
+                        color: Colors.grey[400],
+                        size: 20,
+                      ),
+                    ),
+                  )
+                else
+                  const SizedBox(width: 16),
+              ],
             ),
           ),
         ),
-        const SizedBox(width: 8),
+        const SizedBox(width: 16),
+        // 筛选按钮
         GestureDetector(
           onTap: () => setState(() => _showFilterModal = true),
           child: Container(
-            width: 40,
-            height: 40,
+            width: 48,
+            height: 48,
             decoration: BoxDecoration(
-              color: const Color(0xFF38e07b).withOpacity(0.2),
+              color: Colors.white,
               shape: BoxShape.circle,
+              border: Border.all(color: const Color(0xFFE5E7EB)),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.05),
+                  blurRadius: 8,
+                  offset: const Offset(0, 2),
+                ),
+              ],
             ),
             child: const Icon(
               Icons.tune,
               color: Color(0xFF122017),
-              size: 20,
+              size: 24,
             ),
           ),
         ),
@@ -270,6 +324,7 @@ class _PopularPlantsPageState extends State<PopularPlantsPage> with TickerProvid
     );
   }
 
+  /// 构建网格内容
   Widget _buildGridContent() {
     return FadeTransition(
       opacity: _fadeController,
@@ -277,10 +332,10 @@ class _PopularPlantsPageState extends State<PopularPlantsPage> with TickerProvid
         shrinkWrap: true,
         physics: const NeverScrollableScrollPhysics(),
         gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-          crossAxisCount: 2,
-          crossAxisSpacing: 16,
-          mainAxisSpacing: 16,
-          childAspectRatio: 0.65,
+          crossAxisCount: 2, // 每行2列
+          crossAxisSpacing: 8,
+          mainAxisSpacing: 8,
+          childAspectRatio: 0.68, // 进一步减小比例，给文字更多空间
         ),
         itemCount: _plants.length,
         itemBuilder: (context, index) {
@@ -290,55 +345,22 @@ class _PopularPlantsPageState extends State<PopularPlantsPage> with TickerProvid
     );
   }
 
+  /// 构建加载指示器
   Widget _buildLoadingIndicator() {
     return Container(
-      padding: const EdgeInsets.symmetric(vertical: 24),
+      padding: const EdgeInsets.symmetric(vertical: 20),
       child: const SizedBox(
-        width: 32,
-        height: 32,
+        width: 28,
+        height: 28,
         child: CircularProgressIndicator(
-          strokeWidth: 3,
+          strokeWidth: 2.5,
           valueColor: AlwaysStoppedAnimation<Color>(Color(0xFF38e07b)),
         ),
       ),
     );
   }
 
-  Widget _buildBottomNavigation() {
-    return Positioned(
-      left: 0,
-      right: 0,
-      bottom: 0,
-      child: Container(
-        decoration: BoxDecoration(
-          color: const Color(0xFFF6F8F7).withOpacity(0.8),
-          border: Border(
-            top: BorderSide(color: Colors.black.withOpacity(0.1), width: 1),
-          ),
-        ),
-        child: ClipRect(
-          child: BackdropFilter(
-            filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
-            child: SafeArea(
-              child: Padding(
-                padding: const EdgeInsets.only(top: 8, bottom: 4),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceAround,
-                  children: [
-                    _NavItem(icon: Icons.explore, label: 'Explore', isActive: true),
-                    _NavItem(icon: Icons.camera_alt, label: 'Identify', isActive: false),
-                    _NavItem(icon: Icons.local_florist, label: 'My Garden', isActive: false),
-                    _NavItem(icon: Icons.groups, label: 'Community', isActive: false),
-                  ],
-                ),
-              ),
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-
+  /// 构建筛选模态框
   Widget _buildFilterModal() {
     return Positioned.fill(
       child: GestureDetector(
@@ -350,10 +372,10 @@ class _PopularPlantsPageState extends State<PopularPlantsPage> with TickerProvid
             child: Align(
               alignment: Alignment.topCenter,
               child: GestureDetector(
-                onTap: () {},
+                onTap: () {}, // 阻止点击模态框内容时关闭
                 child: Container(
-                  margin: const EdgeInsets.only(top: 96, left: 16, right: 16),
-                  constraints: const BoxConstraints(maxWidth: 500, maxHeight: 600),
+                  margin: const EdgeInsets.only(top: 100, left: 16, right: 16),
+                  constraints: const BoxConstraints(maxWidth: 480, maxHeight: 580),
                   decoration: BoxDecoration(
                     color: const Color(0xFFF6F8F7),
                     borderRadius: BorderRadius.circular(16),
@@ -368,16 +390,17 @@ class _PopularPlantsPageState extends State<PopularPlantsPage> with TickerProvid
                   child: Column(
                     mainAxisSize: MainAxisSize.min,
                     children: [
+                      // 可滚动的筛选选项区域
                       Flexible(
                         child: SingleChildScrollView(
-                          padding: const EdgeInsets.all(24),
+                          padding: const EdgeInsets.all(20),
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               _buildSortSection(),
-                              const SizedBox(height: 24),
+                              const SizedBox(height: 20),
                               _buildPlantTypeSection(),
-                              const SizedBox(height: 24),
+                              const SizedBox(height: 20),
                               _buildContentTypeSection(),
                             ],
                           ),
@@ -395,6 +418,7 @@ class _PopularPlantsPageState extends State<PopularPlantsPage> with TickerProvid
     );
   }
 
+  /// 构建排序选项区域
   Widget _buildSortSection() {
     final options = [
       {'value': 'popular', 'label': 'Most Popular'},
@@ -410,15 +434,15 @@ class _PopularPlantsPageState extends State<PopularPlantsPage> with TickerProvid
         const Text(
           'Sort by',
           style: TextStyle(
-            fontSize: 18,
+            fontSize: 17,
             fontWeight: FontWeight.bold,
             color: Color(0xFF122017),
           ),
         ),
-        const SizedBox(height: 12),
+        const SizedBox(height: 10),
         ...options.map((option) {
           return Padding(
-            padding: const EdgeInsets.only(bottom: 12),
+            padding: const EdgeInsets.only(bottom: 10),
             child: _SortOption(
               label: option['label']!,
               value: option['value']!,
@@ -431,6 +455,7 @@ class _PopularPlantsPageState extends State<PopularPlantsPage> with TickerProvid
     );
   }
 
+  /// 构建植物类型筛选区域
   Widget _buildPlantTypeSection() {
     return _ExpandableSection(
       title: 'Plant Type',
@@ -481,6 +506,7 @@ class _PopularPlantsPageState extends State<PopularPlantsPage> with TickerProvid
     );
   }
 
+  /// 构建内容类型筛选区域
   Widget _buildContentTypeSection() {
     return _ExpandableSection(
       title: 'Content Type',
@@ -531,13 +557,15 @@ class _PopularPlantsPageState extends State<PopularPlantsPage> with TickerProvid
     );
   }
 
+  /// 构建模态框底部按钮
   Widget _buildModalFooter() {
+    // 判断是否有筛选条件变更
     final hasChanges = _selectedSort != 'popular' || 
                        _selectedPlantTypes.isNotEmpty || 
                        _selectedContentTypes.isNotEmpty;
 
     return Container(
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
         border: Border(
           top: BorderSide(color: Colors.black.withOpacity(0.1), width: 1),
@@ -545,6 +573,7 @@ class _PopularPlantsPageState extends State<PopularPlantsPage> with TickerProvid
       ),
       child: Row(
         children: [
+          // 重置按钮
           Expanded(
             child: ElevatedButton(
               onPressed: _resetFilters,
@@ -552,18 +581,19 @@ class _PopularPlantsPageState extends State<PopularPlantsPage> with TickerProvid
                 backgroundColor: const Color(0xFF122017).withOpacity(0.1),
                 foregroundColor: const Color(0xFF122017),
                 elevation: 0,
-                padding: const EdgeInsets.symmetric(vertical: 14),
+                padding: const EdgeInsets.symmetric(vertical: 13),
                 shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(24),
+                  borderRadius: BorderRadius.circular(22),
                 ),
               ),
               child: const Text(
                 'Reset',
-                style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold),
               ),
             ),
           ),
-          const SizedBox(width: 12),
+          const SizedBox(width: 10),
+          // 应用按钮
           Expanded(
             child: ElevatedButton(
               onPressed: hasChanges ? _applyFilters : null,
@@ -572,14 +602,14 @@ class _PopularPlantsPageState extends State<PopularPlantsPage> with TickerProvid
                 foregroundColor: Colors.white,
                 disabledBackgroundColor: const Color(0xFF38e07b).withOpacity(0.5),
                 elevation: 0,
-                padding: const EdgeInsets.symmetric(vertical: 14),
+                padding: const EdgeInsets.symmetric(vertical: 13),
                 shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(24),
+                  borderRadius: BorderRadius.circular(22),
                 ),
               ),
               child: const Text(
                 'Apply',
-                style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold),
               ),
             ),
           ),
@@ -589,6 +619,7 @@ class _PopularPlantsPageState extends State<PopularPlantsPage> with TickerProvid
   }
 }
 
+/// 植物网格项组件
 class _PlantGridItem extends StatelessWidget {
   final PlantItem plant;
 
@@ -598,6 +629,7 @@ class _PlantGridItem extends StatelessWidget {
   Widget build(BuildContext context) {
     return GestureDetector(
       onTap: () {
+        // 导航到植物详情页
         Navigator.push(
           context,
           MaterialPageRoute(
@@ -617,23 +649,25 @@ class _PlantGridItem extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          // 图片容器 - 使用 Expanded
           Expanded(
             child: Container(
               decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(12),
+                borderRadius: BorderRadius.circular(10),
                 boxShadow: [
                   BoxShadow(
-                    color: Colors.black.withOpacity(0.1),
-                    blurRadius: 8,
+                    color: Colors.black.withOpacity(0.08),
+                    blurRadius: 6,
                     offset: const Offset(0, 2),
                   ),
                 ],
               ),
               child: ClipRRect(
-                borderRadius: BorderRadius.circular(12),
+                borderRadius: BorderRadius.circular(10),
                 child: Stack(
                   fit: StackFit.expand,
                   children: [
+                    // Hero 动画图片
                     Hero(
                       tag: 'plant_${plant.name}_${plant.imageUrl}',
                       child: Image.network(
@@ -642,20 +676,22 @@ class _PlantGridItem extends StatelessWidget {
                         errorBuilder: (context, error, stackTrace) {
                           return Container(
                             color: Colors.grey[300],
-                            child: const Icon(Icons.image, size: 60),
+                            child: const Icon(Icons.image, size: 50),
                           );
                         },
                       ),
                     ),
+                    // 人气徽章（右下角）
                     if (plant.popularity > 0)
                       Positioned(
-                        bottom: 8,
-                        right: 8,
+                        bottom: 6,
+                        right: 6,
                         child: Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                          constraints: const BoxConstraints(maxWidth: 55),
+                          padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
                           decoration: BoxDecoration(
-                            color: Colors.black.withOpacity(0.3),
-                            borderRadius: BorderRadius.circular(12),
+                            color: Colors.black.withOpacity(0.5),
+                            borderRadius: BorderRadius.circular(8),
                           ),
                           child: Row(
                             mainAxisSize: MainAxisSize.min,
@@ -663,43 +699,48 @@ class _PlantGridItem extends StatelessWidget {
                               const Icon(
                                 Icons.local_fire_department,
                                 color: Colors.red,
-                                size: 14,
+                                size: 9,
                               ),
-                              const SizedBox(width: 4),
-                              Text(
-                                plant.popularity >= 1000
-                                    ? '${(plant.popularity / 1000).toStringAsFixed(1)}k'
-                                    : plant.popularity.toString(),
-                                style: const TextStyle(
-                                  color: Colors.white,
-                                  fontSize: 12,
-                                  fontWeight: FontWeight.bold,
+                              const SizedBox(width: 2),
+                              Flexible(
+                                child: Text(
+                                  plant.popularity >= 1000
+                                      ? '${(plant.popularity / 1000).toStringAsFixed(1)}k'
+                                      : plant.popularity.toString(),
+                                  style: const TextStyle(
+                                    color: Colors.white,
+                                    fontSize: 8,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                  overflow: TextOverflow.ellipsis,
                                 ),
                               ),
                             ],
                           ),
                         ),
                       ),
+                    // NEW 标签（左上角）
                     if (plant.isNew)
                       Positioned(
-                        top: 8,
-                        left: 8,
+                        top: 6,
+                        left: 6,
                         child: Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                          padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 2),
                           decoration: BoxDecoration(
                             color: const Color(0xFF38e07b),
-                            borderRadius: BorderRadius.circular(12),
+                            borderRadius: BorderRadius.circular(8),
                           ),
                           child: const Text(
                             'NEW',
                             style: TextStyle(
                               color: Color(0xFF122017),
-                              fontSize: 12,
+                              fontSize: 9,
                               fontWeight: FontWeight.bold,
                             ),
                           ),
                         ),
                       ),
+                    // 视频播放图标
                     if (plant.isVideo)
                       Container(
                         color: Colors.black.withOpacity(0.2),
@@ -707,7 +748,7 @@ class _PlantGridItem extends StatelessWidget {
                           child: Icon(
                             Icons.play_circle_outline,
                             color: Colors.white,
-                            size: 48,
+                            size: 36,
                           ),
                         ),
                       ),
@@ -716,22 +757,24 @@ class _PlantGridItem extends StatelessWidget {
               ),
             ),
           ),
-          const SizedBox(height: 8),
+          const SizedBox(height: 5),
+          // 植物名称
           Text(
             plant.name,
             style: const TextStyle(
-              fontSize: 15,
+              fontSize: 12,
               fontWeight: FontWeight.bold,
               color: Color(0xFF122017),
             ),
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
           ),
-          const SizedBox(height: 2),
+          const SizedBox(height: 1),
+          // 植物描述
           Text(
             plant.description,
             style: TextStyle(
-              fontSize: 13,
+              fontSize: 10,
               color: const Color(0xFF122017).withOpacity(0.6),
             ),
             maxLines: 1,
@@ -743,41 +786,7 @@ class _PlantGridItem extends StatelessWidget {
   }
 }
 
-class _NavItem extends StatelessWidget {
-  final IconData icon;
-  final String label;
-  final bool isActive;
-
-  const _NavItem({
-    required this.icon,
-    required this.label,
-    required this.isActive,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Column(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        Icon(
-          icon,
-          color: isActive ? const Color(0xFF38e07b) : const Color(0xFF122017).withOpacity(0.6),
-          size: 24,
-        ),
-        const SizedBox(height: 4),
-        Text(
-          label,
-          style: TextStyle(
-            fontSize: 12,
-            fontWeight: isActive ? FontWeight.bold : FontWeight.w500,
-            color: isActive ? const Color(0xFF38e07b) : const Color(0xFF122017).withOpacity(0.6),
-          ),
-        ),
-      ],
-    );
-  }
-}
-
+/// 排序选项组件
 class _SortOption extends StatelessWidget {
   final String label;
   final String value;
@@ -796,42 +805,45 @@ class _SortOption extends StatelessWidget {
     return GestureDetector(
       onTap: onTap,
       child: Container(
-        padding: const EdgeInsets.all(12),
+        padding: const EdgeInsets.all(10),
         decoration: BoxDecoration(
           color: isSelected
               ? const Color(0xFF38e07b).withOpacity(0.2)
               : const Color(0xFF122017).withOpacity(0.05),
-          borderRadius: BorderRadius.circular(12),
+          borderRadius: BorderRadius.circular(10),
         ),
         child: Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            Text(
-              label,
-              style: TextStyle(
-                fontSize: 15,
-                fontWeight: isSelected ? FontWeight.w600 : FontWeight.w400,
-                color: const Color(0xFF122017),
+            Expanded(
+              child: Text(
+                label,
+                style: TextStyle(
+                  fontSize: 14,
+                  fontWeight: isSelected ? FontWeight.w600 : FontWeight.w400,
+                  color: const Color(0xFF122017),
+                ),
               ),
             ),
+            // 选中指示器
             if (isSelected)
               Container(
-                width: 20,
-                height: 20,
+                width: 18,
+                height: 18,
                 decoration: const BoxDecoration(
                   color: Color(0xFF38e07b),
                   shape: BoxShape.circle,
                 ),
-                child: const Icon(Icons.check, color: Colors.white, size: 14),
+                child: const Icon(Icons.check, color: Colors.white, size: 12),
               )
             else
               Container(
-                width: 20,
-                height: 20,
+                width: 18,
+                height: 18,
                 decoration: BoxDecoration(
                   border: Border.all(
                     color: const Color(0xFF122017).withOpacity(0.2),
-                    width: 2,
+                    width: 1.5,
                   ),
                   shape: BoxShape.circle,
                 ),
@@ -843,6 +855,7 @@ class _SortOption extends StatelessWidget {
   }
 }
 
+/// 可展开的筛选区域组件
 class _ExpandableSection extends StatefulWidget {
   final String title;
   final List<Widget> children;
@@ -864,6 +877,7 @@ class _ExpandableSectionState extends State<_ExpandableSection> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
+        // 点击展开/收起
         GestureDetector(
           onTap: () => setState(() => _isExpanded = !_isExpanded),
           child: Row(
@@ -872,7 +886,7 @@ class _ExpandableSectionState extends State<_ExpandableSection> {
               Text(
                 widget.title,
                 style: const TextStyle(
-                  fontSize: 18,
+                  fontSize: 17,
                   fontWeight: FontWeight.bold,
                   color: Color(0xFF122017),
                 ),
@@ -880,13 +894,14 @@ class _ExpandableSectionState extends State<_ExpandableSection> {
               AnimatedRotation(
                 turns: _isExpanded ? 0.5 : 0,
                 duration: const Duration(milliseconds: 200),
-                child: const Icon(Icons.expand_more, color: Color(0xFF122017)),
+                child: const Icon(Icons.expand_more, color: Color(0xFF122017), size: 22),
               ),
             ],
           ),
         ),
+        // 展开后显示的内容
         if (_isExpanded) ...[
-          const SizedBox(height: 12),
+          const SizedBox(height: 10),
           ...widget.children,
         ],
       ],
@@ -894,6 +909,7 @@ class _ExpandableSectionState extends State<_ExpandableSection> {
   }
 }
 
+/// 筛选复选框组件
 class _FilterCheckbox extends StatelessWidget {
   final String label;
   final String value;
@@ -910,41 +926,43 @@ class _FilterCheckbox extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.only(bottom: 12),
+      padding: const EdgeInsets.only(bottom: 10),
       child: GestureDetector(
         onTap: () => onChanged(!isSelected),
         child: Container(
-          padding: const EdgeInsets.all(12),
+          padding: const EdgeInsets.all(10),
           decoration: BoxDecoration(
             color: isSelected
                 ? const Color(0xFF38e07b).withOpacity(0.2)
                 : const Color(0xFF122017).withOpacity(0.05),
-            borderRadius: BorderRadius.circular(12),
+            borderRadius: BorderRadius.circular(10),
           ),
           child: Row(
             children: [
+              // 复选框
               Container(
-                width: 20,
-                height: 20,
+                width: 18,
+                height: 18,
                 decoration: BoxDecoration(
                   color: isSelected ? const Color(0xFF38e07b) : Colors.transparent,
                   border: Border.all(
                     color: isSelected
                         ? const Color(0xFF38e07b)
                         : const Color(0xFF122017).withOpacity(0.2),
-                    width: 2,
+                    width: 1.5,
                   ),
                   borderRadius: BorderRadius.circular(4),
                 ),
                 child: isSelected
-                    ? const Icon(Icons.check, color: Colors.white, size: 14)
+                    ? const Icon(Icons.check, color: Colors.white, size: 12)
                     : null,
               ),
-              const SizedBox(width: 12),
+              const SizedBox(width: 10),
+              // 标签文字
               Text(
                 label,
                 style: const TextStyle(
-                  fontSize: 15,
+                  fontSize: 14,
                   color: Color(0xFF122017),
                 ),
               ),
@@ -956,13 +974,14 @@ class _FilterCheckbox extends StatelessWidget {
   }
 }
 
+/// 植物数据模型
 class PlantItem {
-  final String name;
-  final String description;
-  final String imageUrl;
-  final int popularity;
-  final bool isNew;
-  final bool isVideo;
+  final String name; // 植物名称
+  final String description; // 植物描述
+  final String imageUrl; // 图片URL
+  final int popularity; // 人气值
+  final bool isNew; // 是否新品
+  final bool isVideo; // 是否视频
 
   PlantItem({
     required this.name,

@@ -3,6 +3,7 @@ import 'dart:ui';
 import 'package:flutter_application_1/presentation/pages/plant_detail_page.dart';
 import 'package:flutter_application_1/presentation/pages/popular_plants_page.dart';
 
+/// 探索页面 - 主页面
 class ExplorePage extends StatefulWidget {
   const ExplorePage({Key? key}) : super(key: key);
 
@@ -11,24 +12,35 @@ class ExplorePage extends StatefulWidget {
 }
 
 class _ExplorePageState extends State<ExplorePage> with TickerProviderStateMixin {
+  // 滚动控制器
   final ScrollController _scrollController = ScrollController();
+  // 搜索框控制器
   final TextEditingController _searchController = TextEditingController();
   
+  // 是否显示排序模态框
   bool _showSortModal = false;
+  // 当前选中的排序选项索引
   int _selectedSort = 0;
+  // 排序选项列表
   final List<String> _sortOptions = ['Most Popular', 'Latest Release', 'Name A-Z'];
+  // 筛选标签列表
   final List<String> _filterTags = ['Succulents', 'Flowering', 'Rare', 'Exotic'];
+  // 筛选标签选中状态
   final List<bool> _selectedFilters = [false, false, false, false];
 
+  // 浮动按钮动画控制器
   late AnimationController _fabController;
   late Animation<double> _fabAnimation;
+  // 页面动画控制器
   late AnimationController _pageController;
 
   @override
   void initState() {
     super.initState();
+    // 初始化浮动按钮动画
     _fabController = AnimationController(duration: const Duration(milliseconds: 2000), vsync: this)..repeat(reverse: true);
     _fabAnimation = Tween<double>(begin: 1.0, end: 1.05).animate(CurvedAnimation(parent: _fabController, curve: Curves.easeInOut));
+    // 初始化页面进入动画
     _pageController = AnimationController(duration: const Duration(milliseconds: 700), vsync: this);
     _pageController.forward();
   }
@@ -48,6 +60,7 @@ class _ExplorePageState extends State<ExplorePage> with TickerProviderStateMixin
       backgroundColor: const Color(0xFFF6F8F7),
       body: Stack(
         children: [
+          // 主内容区域 - 带滑入动画
           SlideTransition(
             position: Tween<Offset>(begin: const Offset(1, 0), end: Offset.zero).animate(CurvedAnimation(parent: _pageController, curve: Curves.easeOut)),
             child: FadeTransition(
@@ -65,7 +78,7 @@ class _ExplorePageState extends State<ExplorePage> with TickerProviderStateMixin
                         _buildLatestDiscoveriesSection(),
                         const SizedBox(height: 24),
                         _buildGardeningTipsSection(),
-                        const SizedBox(height: 100),
+                        const SizedBox(height: 100), // 底部安全距离
                       ],
                     ),
                   ),
@@ -73,13 +86,14 @@ class _ExplorePageState extends State<ExplorePage> with TickerProviderStateMixin
               ),
             ),
           ),
-          // _buildIdentifyFAB(),
+          // 排序筛选模态框
           if (_showSortModal) _buildSortModal(),
         ],
       ),
     );
   }
 
+  /// 构建顶部搜索栏
   Widget _buildHeader() {
     return SliverAppBar(
       expandedHeight: 0,
@@ -96,6 +110,7 @@ class _ExplorePageState extends State<ExplorePage> with TickerProviderStateMixin
             child: SafeArea(
               child: Row(
                 children: [
+                  // 搜索框
                   Expanded(
                     child: Container(
                       decoration: BoxDecoration(
@@ -117,6 +132,7 @@ class _ExplorePageState extends State<ExplorePage> with TickerProviderStateMixin
                     ),
                   ),
                   const SizedBox(width: 16),
+                  // 筛选按钮
                   GestureDetector(
                     onTap: () => setState(() => _showSortModal = true),
                     child: Container(
@@ -140,11 +156,13 @@ class _ExplorePageState extends State<ExplorePage> with TickerProviderStateMixin
     );
   }
 
+  /// 构建热门植物区块
   Widget _buildPopularPlantsSection() {
     return _AnimatedSection(
       delay: 100,
       child: Column(
         children: [
+          // 标题栏
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 16),
             child: Row(
@@ -166,8 +184,9 @@ class _ExplorePageState extends State<ExplorePage> with TickerProviderStateMixin
             ),
           ),
           const SizedBox(height: 12),
+          // 横向滚动卡片列表
           SizedBox(
-            height: 340,
+            height: 350, // 进一步增加高度
             child: ListView(
               scrollDirection: Axis.horizontal,
               padding: const EdgeInsets.symmetric(horizontal: 16),
@@ -209,11 +228,13 @@ class _ExplorePageState extends State<ExplorePage> with TickerProviderStateMixin
     );
   }
 
+  /// 构建最新发现区块
   Widget _buildLatestDiscoveriesSection() {
     return _AnimatedSection(
       delay: 200,
       child: Column(
         children: [
+          // 标题栏
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 16),
             child: Row(
@@ -238,8 +259,9 @@ class _ExplorePageState extends State<ExplorePage> with TickerProviderStateMixin
             ),
           ),
           const SizedBox(height: 12),
+          // 横向滚动卡片列表
           SizedBox(
-            height: 320,
+            height: 320, // 增加高度防止溢出
             child: ListView(
               scrollDirection: Axis.horizontal,
               padding: const EdgeInsets.symmetric(horizontal: 16),
@@ -257,11 +279,13 @@ class _ExplorePageState extends State<ExplorePage> with TickerProviderStateMixin
     );
   }
 
+  /// 构建园艺技巧区块
   Widget _buildGardeningTipsSection() {
     return _AnimatedSection(
       delay: 300,
       child: Column(
         children: [
+          // 标题栏
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 16),
             child: Row(
@@ -286,8 +310,9 @@ class _ExplorePageState extends State<ExplorePage> with TickerProviderStateMixin
             ),
           ),
           const SizedBox(height: 12),
+          // 横向滚动卡片列表
           SizedBox(
-            height: 320,
+            height: 310, // 固定高度防止溢出
             child: ListView(
               scrollDirection: Axis.horizontal,
               padding: const EdgeInsets.symmetric(horizontal: 16),
@@ -305,35 +330,7 @@ class _ExplorePageState extends State<ExplorePage> with TickerProviderStateMixin
     );
   }
 
-  Widget _buildIdentifyFAB() {
-    return Positioned(
-      right: 20,
-      bottom: 120,
-      child: ScaleTransition(
-        scale: _fabAnimation,
-        child: GestureDetector(
-          onTap: () {},
-          child: Container(
-            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
-            decoration: BoxDecoration(
-              color: const Color(0xFF38e07b),
-              borderRadius: BorderRadius.circular(28),
-              boxShadow: [BoxShadow(color: const Color(0xFF38e07b).withOpacity(0.4), blurRadius: 20, offset: const Offset(0, 8))],
-            ),
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: const [
-                Icon(Icons.camera_alt, color: Color(0xFF122017), size: 24),
-                SizedBox(width: 8),
-                Text('Identify Plant', style: TextStyle(color: Color(0xFF122017), fontWeight: FontWeight.bold, fontSize: 16)),
-              ],
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-
+  /// 构建排序筛选模态框
   Widget _buildSortModal() {
     return Positioned.fill(
       child: GestureDetector(
@@ -344,7 +341,7 @@ class _ExplorePageState extends State<ExplorePage> with TickerProviderStateMixin
             filter: ImageFilter.blur(sigmaX: 5, sigmaY: 5),
             child: Center(
               child: GestureDetector(
-                onTap: () {},
+                onTap: () {}, // 阻止点击模态框内容时关闭
                 child: TweenAnimationBuilder<double>(
                   duration: const Duration(milliseconds: 400),
                   tween: Tween(begin: 0.0, end: 1.0),
@@ -363,6 +360,7 @@ class _ExplorePageState extends State<ExplorePage> with TickerProviderStateMixin
                     child: Column(
                       mainAxisSize: MainAxisSize.min,
                       children: [
+                        // 模态框标题栏
                         Container(
                           padding: const EdgeInsets.all(16),
                           decoration: BoxDecoration(border: Border(bottom: BorderSide(color: Colors.grey[200]!, width: 1))),
@@ -374,17 +372,20 @@ class _ExplorePageState extends State<ExplorePage> with TickerProviderStateMixin
                             ],
                           ),
                         ),
+                        // 排序和筛选选项
                         Padding(
                           padding: const EdgeInsets.all(16),
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
+                              // 排序选项
                               Text('Sort by', style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: Colors.grey[700])),
                               const SizedBox(height: 12),
                               ...List.generate(_sortOptions.length, (index) {
                                 return _SortOption(label: _sortOptions[index], isSelected: _selectedSort == index, onTap: () => setState(() => _selectedSort = index));
                               }),
                               const SizedBox(height: 24),
+                              // 筛选选项
                               Text('Filter by Type', style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: Colors.grey[700])),
                               const SizedBox(height: 12),
                               Wrap(
@@ -398,6 +399,7 @@ class _ExplorePageState extends State<ExplorePage> with TickerProviderStateMixin
                             ],
                           ),
                         ),
+                        // 应用按钮
                         Container(
                           padding: const EdgeInsets.all(16),
                           decoration: BoxDecoration(border: Border(top: BorderSide(color: Colors.grey[200]!, width: 1))),
@@ -429,6 +431,7 @@ class _ExplorePageState extends State<ExplorePage> with TickerProviderStateMixin
   }
 }
 
+/// 带动画的区块组件
 class _AnimatedSection extends StatefulWidget {
   final Widget child;
   final int delay;
@@ -439,44 +442,64 @@ class _AnimatedSection extends StatefulWidget {
 
 class _AnimatedSectionState extends State<_AnimatedSection> with SingleTickerProviderStateMixin {
   late AnimationController _controller;
+  
   @override
   void initState() {
     super.initState();
     _controller = AnimationController(duration: const Duration(milliseconds: 600), vsync: this);
+    // 延迟后开始动画
     Future.delayed(Duration(milliseconds: widget.delay), () {
       if (mounted) _controller.forward();
     });
   }
+  
   @override
   void dispose() {
     _controller.dispose();
     super.dispose();
   }
+  
   @override
   Widget build(BuildContext context) {
     return FadeTransition(
       opacity: CurvedAnimation(parent: _controller, curve: Curves.easeOut),
-      child: SlideTransition(position: Tween<Offset>(begin: const Offset(0, 0.05), end: Offset.zero).animate(CurvedAnimation(parent: _controller, curve: Curves.easeOut)), child: widget.child),
+      child: SlideTransition(
+        position: Tween<Offset>(begin: const Offset(0, 0.05), end: Offset.zero).animate(CurvedAnimation(parent: _controller, curve: Curves.easeOut)),
+        child: widget.child,
+      ),
     );
   }
 }
 
+/// 植物卡片组件 - 带标签和徽章
 class _PlantCard extends StatefulWidget {
   final String imageUrl;
   final String title;
   final String description;
-  final String? badge;
-  final IconData? badgeIcon;
-  final Color? badgeColor;
-  final List<String> tags;
-  final List<Color> tagColors;
-  const _PlantCard({required this.imageUrl, required this.title, required this.description, this.badge, this.badgeIcon, this.badgeColor, this.tags = const [], this.tagColors = const []});
+  final String? badge; // 徽章文字（如 1.2M）
+  final IconData? badgeIcon; // 徽章图标
+  final Color? badgeColor; // 徽章颜色
+  final List<String> tags; // 标签列表
+  final List<Color> tagColors; // 标签颜色列表
+  
+  const _PlantCard({
+    required this.imageUrl,
+    required this.title,
+    required this.description,
+    this.badge,
+    this.badgeIcon,
+    this.badgeColor,
+    this.tags = const [],
+    this.tagColors = const [],
+  });
+  
   @override
   State<_PlantCard> createState() => _PlantCardState();
 }
 
 class _PlantCardState extends State<_PlantCard> {
   bool _isHovered = false;
+  
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
@@ -484,6 +507,7 @@ class _PlantCardState extends State<_PlantCard> {
       onTapUp: (_) => setState(() => _isHovered = false),
       onTapCancel: () => setState(() => _isHovered = false),
       onTap: () {
+        // 导航到详情页
         Navigator.push(
           context,
           MaterialPageRoute(
@@ -491,11 +515,7 @@ class _PlantCardState extends State<_PlantCard> {
               name: widget.title,
               description: widget.description,
               imageUrl: widget.imageUrl,
-              imageUrls: [
-                widget.imageUrl,
-                'https://picsum.photos/400/600?random=101',
-                'https://picsum.photos/400/600?random=102',
-              ],
+              imageUrls: [widget.imageUrl, 'https://picsum.photos/400/600?random=101', 'https://picsum.photos/400/600?random=102'],
               popularity: widget.badge != null ? int.tryParse(widget.badge!.replaceAll(RegExp(r'[^0-9]'), '')) ?? 0 : null,
               isNew: false,
               isVideo: false,
@@ -509,38 +529,60 @@ class _PlantCardState extends State<_PlantCard> {
         scale: _isHovered ? 0.95 : 1.0,
         duration: const Duration(milliseconds: 200),
         child: Container(
-          width: 224,
+          width: 220,
           margin: const EdgeInsets.only(right: 16),
           child: Column(
-            mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
+              // 图片容器
               Container(
-                width: 224,
-                height: 224,
-                decoration: BoxDecoration(borderRadius: BorderRadius.circular(12), boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.1), blurRadius: 8, offset: const Offset(0, 2))]),
+                width: 220,
+                height: 220,
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(12),
+                  boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.1), blurRadius: 8, offset: const Offset(0, 2))],
+                ),
                 child: ClipRRect(
                   borderRadius: BorderRadius.circular(12),
                   child: Stack(
                     fit: StackFit.expand,
                     children: [
+                      // Hero 动画图片
                       Hero(
                         tag: 'plant_${widget.title}_${widget.imageUrl}',
-                        child: Image.network(widget.imageUrl, fit: BoxFit.cover, errorBuilder: (context, error, stackTrace) => Container(color: Colors.grey[300], child: const Icon(Icons.image, size: 60))),
+                        child: Image.network(
+                          widget.imageUrl,
+                          fit: BoxFit.cover,
+                          errorBuilder: (context, error, stackTrace) => Container(
+                            color: Colors.grey[300],
+                            child: const Icon(Icons.image, size: 60),
+                          ),
+                        ),
                       ),
+                      // 徽章（如果有）
                       if (widget.badge != null)
                         Positioned(
                           top: 8,
                           right: 8,
                           child: Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                            decoration: BoxDecoration(color: Colors.black.withOpacity(0.4), borderRadius: BorderRadius.circular(12)),
+                            constraints: const BoxConstraints(maxWidth: 65), // 限制最大宽度防止溢出
+                            padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 3),
+                            decoration: BoxDecoration(
+                              color: Colors.black.withOpacity(0.5),
+                              borderRadius: BorderRadius.circular(10),
+                            ),
                             child: Row(
                               mainAxisSize: MainAxisSize.min,
                               children: [
-                                Icon(widget.badgeIcon, color: widget.badgeColor, size: 14),
-                                const SizedBox(width: 4),
-                                Text(widget.badge!, style: const TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.bold)),
+                                Icon(widget.badgeIcon, color: widget.badgeColor, size: 10),
+                                const SizedBox(width: 2),
+                                Flexible(
+                                  child: Text(
+                                    widget.badge!,
+                                    style: const TextStyle(color: Colors.white, fontSize: 9, fontWeight: FontWeight.bold),
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
+                                ),
                               ],
                             ),
                           ),
@@ -550,28 +592,47 @@ class _PlantCardState extends State<_PlantCard> {
                 ),
               ),
               const SizedBox(height: 8),
-              Flexible(
+              // 文字信息容器 - 固定高度防止溢出
+              SizedBox(
+                height: 95, // 增加高度
                 child: Column(
-                  mainAxisSize: MainAxisSize.min,
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(widget.title, style: const TextStyle(fontSize: 15, fontWeight: FontWeight.bold, color: Color(0xFF122017)), maxLines: 1, overflow: TextOverflow.ellipsis),
-                    const SizedBox(height: 4),
-                    Text(widget.description, style: TextStyle(fontSize: 12, color: Colors.grey[600]), maxLines: 2, overflow: TextOverflow.ellipsis),
-                    if (widget.tags.isNotEmpty) ...[
-                      const SizedBox(height: 6),
+                    // 标题
+                    Text(
+                      widget.title,
+                      style: const TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: Color(0xFF122017)),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    const SizedBox(height: 2),
+                    // 描述
+                    Text(
+                      widget.description,
+                      style: TextStyle(fontSize: 10, color: Colors.grey[600]),
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    if (widget.tags.isNotEmpty) const SizedBox(height: 3),
+                    // 标签 - 最多显示2个
+                    if (widget.tags.isNotEmpty)
                       Wrap(
-                        spacing: 6,
-                        runSpacing: 4,
-                        children: List.generate(widget.tags.length, (index) {
+                        spacing: 3,
+                        runSpacing: 2,
+                        children: List.generate(widget.tags.length > 2 ? 2 : widget.tags.length, (index) {
                           return Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-                            decoration: BoxDecoration(color: widget.tagColors[index].withOpacity(0.15), borderRadius: BorderRadius.circular(12)),
-                            child: Text(widget.tags[index], style: TextStyle(fontSize: 10, fontWeight: FontWeight.w600, color: widget.tagColors[index])),
+                            padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1),
+                            decoration: BoxDecoration(
+                              color: widget.tagColors[index].withOpacity(0.15),
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            child: Text(
+                              widget.tags[index],
+                              style: TextStyle(fontSize: 8, fontWeight: FontWeight.w600, color: widget.tagColors[index]),
+                            ),
                           );
                         }),
                       ),
-                    ],
                   ],
                 ),
               ),
@@ -583,19 +644,29 @@ class _PlantCardState extends State<_PlantCard> {
   }
 }
 
+/// 视频卡片组件
 class _VideoCard extends StatefulWidget {
-  final String thumbnailUrl;
+  final String thumbnailUrl; // 缩略图URL
   final String title;
-  final String author;
-  final String likes;
+  final String author; // 作者
+  final String likes; // 点赞数
   final Color iconColor;
-  const _VideoCard({required this.thumbnailUrl, required this.title, required this.author, required this.likes, this.iconColor = Colors.red});
+  
+  const _VideoCard({
+    required this.thumbnailUrl,
+    required this.title,
+    required this.author,
+    required this.likes,
+    this.iconColor = Colors.red,
+  });
+  
   @override
   State<_VideoCard> createState() => _VideoCardState();
 }
 
 class _VideoCardState extends State<_VideoCard> {
   bool _isHovered = false;
+  
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
@@ -603,6 +674,7 @@ class _VideoCardState extends State<_VideoCard> {
       onTapUp: (_) => setState(() => _isHovered = false),
       onTapCancel: () => setState(() => _isHovered = false),
       onTap: () {
+        // 导航到详情页
         Navigator.push(
           context,
           MaterialPageRoute(
@@ -610,12 +682,7 @@ class _VideoCardState extends State<_VideoCard> {
               name: widget.title,
               description: widget.author,
               imageUrl: widget.thumbnailUrl,
-              imageUrls: [
-                widget.thumbnailUrl,
-                'https://picsum.photos/400/600?random=201',
-                'https://picsum.photos/400/600?random=202',
-                'https://picsum.photos/400/600?random=203',
-              ],
+              imageUrls: [widget.thumbnailUrl, 'https://picsum.photos/400/600?random=201', 'https://picsum.photos/400/600?random=202', 'https://picsum.photos/400/600?random=203'],
               popularity: int.tryParse(widget.likes.replaceAll(RegExp(r'[^0-9]'), '')) ?? 0,
               isNew: false,
               isVideo: true,
@@ -629,49 +696,88 @@ class _VideoCardState extends State<_VideoCard> {
         scale: _isHovered ? 0.95 : 1.0,
         duration: const Duration(milliseconds: 200),
         child: Container(
-          width: 224,
+          width: 220,
           margin: const EdgeInsets.only(right: 16),
           child: Column(
-            mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
+              // 视频缩略图
               Container(
-                width: 224,
-                height: 224,
-                decoration: BoxDecoration(borderRadius: BorderRadius.circular(12), boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.1), blurRadius: 8, offset: const Offset(0, 2))]),
+                width: 220,
+                height: 220,
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(12),
+                  boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.1), blurRadius: 8, offset: const Offset(0, 2))],
+                ),
                 child: ClipRRect(
                   borderRadius: BorderRadius.circular(12),
                   child: Stack(
                     fit: StackFit.expand,
                     children: [
+                      // Hero 动画缩略图
                       Hero(
                         tag: 'plant_${widget.title}_${widget.thumbnailUrl}',
-                        child: Image.network(widget.thumbnailUrl, fit: BoxFit.cover, errorBuilder: (context, error, stackTrace) => Container(color: Colors.grey[300], child: const Icon(Icons.video_library, size: 60))),
+                        child: Image.network(
+                          widget.thumbnailUrl,
+                          fit: BoxFit.cover,
+                          errorBuilder: (context, error, stackTrace) => Container(
+                            color: Colors.grey[300],
+                            child: const Icon(Icons.video_library, size: 60),
+                          ),
+                        ),
                       ),
+                      // 渐变遮罩和播放按钮
                       Container(
-                        decoration: BoxDecoration(gradient: LinearGradient(begin: Alignment.topCenter, end: Alignment.bottomCenter, colors: [Colors.transparent, Colors.black.withOpacity(0.3)])),
-                        child: const Center(child: Icon(Icons.play_circle_outline, color: Colors.white, size: 48)),
+                        decoration: BoxDecoration(
+                          gradient: LinearGradient(
+                            begin: Alignment.topCenter,
+                            end: Alignment.bottomCenter,
+                            colors: [Colors.transparent, Colors.black.withOpacity(0.3)],
+                          ),
+                        ),
+                        child: const Center(
+                          child: Icon(Icons.play_circle_outline, color: Colors.white, size: 48),
+                        ),
                       ),
                     ],
                   ),
                 ),
               ),
               const SizedBox(height: 8),
-              Flexible(
+              // 视频信息 - 固定高度防止溢出
+              SizedBox(
+                height: 70, // 增加高度
                 child: Column(
-                  mainAxisSize: MainAxisSize.min,
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(widget.title, style: const TextStyle(fontSize: 15, fontWeight: FontWeight.bold, color: Color(0xFF122017)), maxLines: 1, overflow: TextOverflow.ellipsis),
-                    const SizedBox(height: 4),
-                    Text(widget.author, style: TextStyle(fontSize: 12, color: Colors.grey[600]), maxLines: 1, overflow: TextOverflow.ellipsis),
-                    const SizedBox(height: 6),
+                    // 标题
+                    Text(
+                      widget.title,
+                      style: const TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: Color(0xFF122017)),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    const SizedBox(height: 2),
+                    // 作者
+                    Text(
+                      widget.author,
+                      style: TextStyle(fontSize: 10, color: Colors.grey[600]),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    const SizedBox(height: 3),
+                    // 点赞数
                     Row(
-                      mainAxisSize: MainAxisSize.min,
                       children: [
-                        Icon(Icons.thumb_up, size: 14, color: widget.iconColor),
-                        const SizedBox(width: 4),
-                        Text(widget.likes, style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: Color(0xFF122017)))
+                        Icon(Icons.thumb_up, size: 9, color: widget.iconColor),
+                        const SizedBox(width: 2),
+                        Flexible(
+                          child: Text(
+                            widget.likes,
+                            style: const TextStyle(fontSize: 9, fontWeight: FontWeight.w600, color: Color(0xFF122017)),
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
                       ],
                     ),
                   ],
@@ -685,22 +791,35 @@ class _VideoCardState extends State<_VideoCard> {
   }
 }
 
+/// 发现卡片组件 - 简化版植物卡片
 class _DiscoveryCard extends StatefulWidget {
   final String imageUrl;
   final String title;
   final String description;
-  final String? stat;
-  final IconData? icon;
+  final String? stat; // 统计数据（如浏览量）
+  final IconData? icon; // 统计图标
   final Color? iconColor;
-  final String? tag;
+  final String? tag; // 单个标签
   final Color? tagColor;
-  const _DiscoveryCard({required this.imageUrl, required this.title, required this.description, this.stat, this.icon, this.iconColor, this.tag, this.tagColor});
+  
+  const _DiscoveryCard({
+    required this.imageUrl,
+    required this.title,
+    required this.description,
+    this.stat,
+    this.icon,
+    this.iconColor,
+    this.tag,
+    this.tagColor,
+  });
+  
   @override
   State<_DiscoveryCard> createState() => _DiscoveryCardState();
 }
 
 class _DiscoveryCardState extends State<_DiscoveryCard> {
   bool _isHovered = false;
+  
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
@@ -708,6 +827,7 @@ class _DiscoveryCardState extends State<_DiscoveryCard> {
       onTapUp: (_) => setState(() => _isHovered = false),
       onTapCancel: () => setState(() => _isHovered = false),
       onTap: () {
+        // 导航到详情页
         Navigator.push(
           context,
           MaterialPageRoute(
@@ -728,45 +848,83 @@ class _DiscoveryCardState extends State<_DiscoveryCard> {
         scale: _isHovered ? 0.95 : 1.0,
         duration: const Duration(milliseconds: 200),
         child: Container(
-          width: 224,
+          width: 220,
           margin: const EdgeInsets.only(right: 16),
           child: Column(
-            mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
+              // 图片
               Container(
-                width: 224,
-                height: 224,
-                decoration: BoxDecoration(borderRadius: BorderRadius.circular(12), boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.1), blurRadius: 8, offset: const Offset(0, 2))]),
-                child: ClipRRect(borderRadius: BorderRadius.circular(12), child: Hero(
-                  tag: 'plant_${widget.title}_${widget.imageUrl}',
-                  child: Image.network(widget.imageUrl, fit: BoxFit.cover, errorBuilder: (context, error, stackTrace) => Container(color: Colors.grey[300], child: const Icon(Icons.image, size: 60))),
-                )),
+                width: 220,
+                height: 220,
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(12),
+                  boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.1), blurRadius: 8, offset: const Offset(0, 2))],
+                ),
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(12),
+                  child: Hero(
+                    tag: 'plant_${widget.title}_${widget.imageUrl}',
+                    child: Image.network(
+                      widget.imageUrl,
+                      fit: BoxFit.cover,
+                      errorBuilder: (context, error, stackTrace) => Container(
+                        color: Colors.grey[300],
+                        child: const Icon(Icons.image, size: 60),
+                      ),
+                    ),
+                  ),
+                ),
               ),
               const SizedBox(height: 8),
-              Flexible(
+              // 信息容器 - 固定高度防止溢出
+              SizedBox(
+                height: 70, // 增加高度
                 child: Column(
-                  mainAxisSize: MainAxisSize.min,
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(widget.title, style: const TextStyle(fontSize: 15, fontWeight: FontWeight.bold, color: Color(0xFF122017)), maxLines: 1, overflow: TextOverflow.ellipsis),
-                    const SizedBox(height: 4),
-                    Text(widget.description, style: TextStyle(fontSize: 12, color: Colors.grey[600]), maxLines: 2, overflow: TextOverflow.ellipsis),
-                    const SizedBox(height: 6),
+                    // 标题
+                    Text(
+                      widget.title,
+                      style: const TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: Color(0xFF122017)),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    const SizedBox(height: 2),
+                    // 描述
+                    Text(
+                      widget.description,
+                      style: TextStyle(fontSize: 10, color: Colors.grey[600]),
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    const SizedBox(height: 3),
+                    // 统计数据或标签
                     if (widget.stat != null && widget.icon != null)
                       Row(
-                        mainAxisSize: MainAxisSize.min,
                         children: [
-                          Icon(widget.icon, size: 14, color: widget.iconColor),
-                          const SizedBox(width: 4),
-                          Text(widget.stat!, style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: Color(0xFF122017)))
+                          Icon(widget.icon, size: 9, color: widget.iconColor),
+                          const SizedBox(width: 2),
+                          Flexible(
+                            child: Text(
+                              widget.stat!,
+                              style: const TextStyle(fontSize: 9, fontWeight: FontWeight.w600, color: Color(0xFF122017)),
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ),
                         ],
                       )
                     else if (widget.tag != null)
                       Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-                        decoration: BoxDecoration(color: widget.tagColor?.withOpacity(0.15) ?? Colors.grey.withOpacity(0.15), borderRadius: BorderRadius.circular(12)),
-                        child: Text(widget.tag!, style: TextStyle(fontSize: 11, fontWeight: FontWeight.w600, color: widget.tagColor ?? Colors.grey[700])),
+                        padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1),
+                        decoration: BoxDecoration(
+                          color: widget.tagColor?.withOpacity(0.15) ?? Colors.grey.withOpacity(0.15),
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: Text(
+                          widget.tag!,
+                          style: TextStyle(fontSize: 8, fontWeight: FontWeight.w600, color: widget.tagColor ?? Colors.grey[700]),
+                        ),
                       ),
                   ],
                 ),
@@ -779,11 +937,18 @@ class _DiscoveryCardState extends State<_DiscoveryCard> {
   }
 }
 
+/// 排序选项组件
 class _SortOption extends StatelessWidget {
   final String label;
   final bool isSelected;
   final VoidCallback onTap;
-  const _SortOption({required this.label, required this.isSelected, required this.onTap});
+  
+  const _SortOption({
+    required this.label,
+    required this.isSelected,
+    required this.onTap,
+  });
+  
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
@@ -791,11 +956,21 @@ class _SortOption extends StatelessWidget {
       child: Container(
         margin: const EdgeInsets.only(bottom: 8),
         padding: const EdgeInsets.all(12),
-        decoration: BoxDecoration(color: isSelected ? const Color(0xFF38e07b).withOpacity(0.1) : Colors.grey[100], borderRadius: BorderRadius.circular(12)),
+        decoration: BoxDecoration(
+          color: isSelected ? const Color(0xFF38e07b).withOpacity(0.1) : Colors.grey[100],
+          borderRadius: BorderRadius.circular(12),
+        ),
         child: Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            Text(label, style: TextStyle(fontSize: 15, fontWeight: isSelected ? FontWeight.bold : FontWeight.w500, color: isSelected ? const Color(0xFF38e07b) : const Color(0xFF122017))),
+            Text(
+              label,
+              style: TextStyle(
+                fontSize: 15,
+                fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
+                color: isSelected ? const Color(0xFF38e07b) : const Color(0xFF122017),
+              ),
+            ),
             if (isSelected) const Icon(Icons.check_circle, color: Color(0xFF38e07b), size: 20),
           ],
         ),
@@ -804,12 +979,20 @@ class _SortOption extends StatelessWidget {
   }
 }
 
+/// 筛选芯片组件
 class _FilterChip extends StatelessWidget {
   final String label;
   final Color color;
   final bool isSelected;
   final VoidCallback onTap;
-  const _FilterChip({required this.label, required this.color, required this.isSelected, required this.onTap});
+  
+  const _FilterChip({
+    required this.label,
+    required this.color,
+    required this.isSelected,
+    required this.onTap,
+  });
+  
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
@@ -822,7 +1005,14 @@ class _FilterChip extends StatelessWidget {
           borderRadius: BorderRadius.circular(16),
           border: isSelected ? Border.all(color: color, width: 2) : null,
         ),
-        child: Text(label, style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: isSelected ? Colors.white : color)),
+        child: Text(
+          label,
+          style: TextStyle(
+            fontSize: 13,
+            fontWeight: FontWeight.w600,
+            color: isSelected ? Colors.white : color,
+          ),
+        ),
       ),
     );
   }
