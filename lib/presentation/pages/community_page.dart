@@ -1,5 +1,6 @@
 // lib/presentation/pages/community_page.dart
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 import '../../core/theme/app_theme.dart';
 import 'create_post_page.dart';
@@ -121,8 +122,9 @@ class CommunityController extends GetxController {
   }
 
   /// 点赞
-  void toggleLike(CommunityPost post) {
-    final index = posts.indexWhere((p) => p.id == post.id);
+  void toggleLike(String postId) {
+    HapticFeedback.lightImpact();
+    final index = posts.indexWhere((p) => p.id == postId);
     if (index != -1) {
       posts[index].isLiked = !posts[index].isLiked;
       if (posts[index].isLiked) {
@@ -135,8 +137,9 @@ class CommunityController extends GetxController {
   }
 
   /// 收藏
-  void toggleBookmark(CommunityPost post) {
-    final index = posts.indexWhere((p) => p.id == post.id);
+  void toggleBookmark(String postId) {
+    HapticFeedback.lightImpact();
+    final index = posts.indexWhere((p) => p.id == postId);
     if (index != -1) {
       posts[index].isBookmarked = !posts[index].isBookmarked;
       if (posts[index].isBookmarked) {
@@ -267,7 +270,7 @@ class CommunityController extends GetxController {
         id: '1',
         userId: 'user1',
         username: 'Sophia Chen',
-        avatarUrl: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Sophia',
+        avatarUrl: 'https://i.pravatar.cc/150?img=1',
         imageUrl: 'https://images.unsplash.com/photo-1466781783364-36c955e42a7f?w=400',
         videoUrl: null,
         isVideo: false,
@@ -281,7 +284,7 @@ class CommunityController extends GetxController {
         id: '2',
         userId: 'user2',
         username: 'Ethan Park',
-        avatarUrl: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Ethan',
+        avatarUrl: 'https://i.pravatar.cc/150?img=12',
         imageUrl: 'https://images.unsplash.com/photo-1485955900006-10f4d324d411?w=400',
         videoUrl: null,
         isVideo: false,
@@ -295,7 +298,7 @@ class CommunityController extends GetxController {
         id: '3',
         userId: 'user3',
         username: 'Oliver Kim',
-        avatarUrl: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Oliver',
+        avatarUrl: 'https://i.pravatar.cc/150?img=33',
         imageUrl: 'https://images.unsplash.com/photo-1501004318641-b39e6451bec6?w=400',
         videoUrl: null,
         isVideo: true,
@@ -349,6 +352,7 @@ class CommunityPage extends StatelessWidget {
                         delegate: SliverChildBuilderDelegate(
                           (context, index) {
                             return _PostCard(
+                              key: ValueKey(controller.posts[index].id),
                               post: controller.posts[index],
                               controller: controller,
                               index: index,
@@ -399,8 +403,9 @@ class CommunityPage extends StatelessWidget {
               letterSpacing: -0.5,
             ),
           ),
-          GestureDetector(
+          InkWell(
             onTap: controller.publishPost,
+            borderRadius: BorderRadius.circular(16),
             child: Container(
               width: 48,
               height: 48,
@@ -483,6 +488,7 @@ class _PostCard extends StatefulWidget {
   final int index;
 
   const _PostCard({
+    super.key,
     required this.post,
     required this.controller,
     required this.index,
@@ -578,20 +584,49 @@ class _PostCardState extends State<_PostCard> with SingleTickerProviderStateMixi
             ),
             child: CircleAvatar(
               radius: 22,
-              backgroundImage: widget.post.avatarUrl != null
-                  ? NetworkImage(widget.post.avatarUrl!)
-                  : null,
               backgroundColor: AppTheme.primaryGreen.withOpacity(0.1),
-              child: widget.post.avatarUrl == null
-                  ? Text(
+              child: widget.post.avatarUrl != null
+                  ? ClipOval(
+                      child: Image.network(
+                        widget.post.avatarUrl!,
+                        width: 44,
+                        height: 44,
+                        fit: BoxFit.cover,
+                        errorBuilder: (context, error, stackTrace) {
+                          return Center(
+                            child: Text(
+                              widget.post.username[0].toUpperCase(),
+                              style: const TextStyle(
+                                color: AppTheme.primaryGreen,
+                                fontWeight: FontWeight.bold,
+                                fontSize: 18,
+                              ),
+                            ),
+                          );
+                        },
+                        loadingBuilder: (context, child, loadingProgress) {
+                          if (loadingProgress == null) return child;
+                          return const Center(
+                            child: SizedBox(
+                              width: 20,
+                              height: 20,
+                              child: CircularProgressIndicator(
+                                strokeWidth: 2,
+                                color: AppTheme.primaryGreen,
+                              ),
+                            ),
+                          );
+                        },
+                      ),
+                    )
+                  : Text(
                       widget.post.username[0].toUpperCase(),
                       style: const TextStyle(
                         color: AppTheme.primaryGreen,
                         fontWeight: FontWeight.bold,
                         fontSize: 18,
                       ),
-                    )
-                  : null,
+                    ),
             ),
           ),
           const SizedBox(width: 12),
@@ -627,7 +662,7 @@ class _PostCardState extends State<_PostCard> with SingleTickerProviderStateMixi
             child: Row(
               mainAxisSize: MainAxisSize.min,
               children: [
-                Icon(
+                const Icon(
                   Icons.visibility_outlined,
                   size: 14,
                   color: AppTheme.primaryGreen,
@@ -650,8 +685,9 @@ class _PostCardState extends State<_PostCard> with SingleTickerProviderStateMixi
   }
 
   Widget _buildContent() {
-    return GestureDetector(
+    return InkWell(
       onTap: _navigateToDetail,
+      borderRadius: BorderRadius.circular(16),
       child: Hero(
         tag: 'post_${widget.post.id}',
         child: Container(
@@ -733,8 +769,6 @@ class _PostCardState extends State<_PostCard> with SingleTickerProviderStateMixi
   }
 
   void _navigateToDetail() {
-    // 导航到植物详情页
-    // 这里假设你有一个 PlantDetailPage，你需要根据实际情况调整
     Get.snackbar(
       'Plant Details',
       'Navigating to plant detail page...',
@@ -745,67 +779,70 @@ class _PostCardState extends State<_PostCard> with SingleTickerProviderStateMixi
       margin: const EdgeInsets.all(16),
       icon: const Icon(Icons.spa_outlined, color: Colors.white),
     );
-    
-    // 取消注释并根据你的路由配置调整
-    // Get.to(
-    //   () => PlantDetailPage(
-    //     plantId: widget.post.id,
-    //     heroTag: 'post_${widget.post.id}',
-    //   ),
-    //   transition: Transition.fadeIn,
-    //   duration: const Duration(milliseconds: 300),
-    // );
   }
 
   Widget _buildActions() {
     return Padding(
       padding: const EdgeInsets.all(16),
-      child: Row(
-        children: [
-          _buildActionButton(
-            icon: widget.post.isLiked
-                ? Icons.favorite_rounded
-                : Icons.favorite_border_rounded,
-            label: _formatCount(widget.post.likeCount),
-            color: widget.post.isLiked ? Colors.red : const Color(0xFF6B7280),
-            onTap: () => widget.controller.toggleLike(widget.post),
-          ),
-          const SizedBox(width: 20),
-          _buildActionButton(
-            icon: Icons.chat_bubble_outline_rounded,
-            label: _formatCount(widget.post.commentCount),
-            color: const Color(0xFF6B7280),
-            onTap: () => widget.controller.showComments(widget.post),
-          ),
-          const SizedBox(width: 20),
-          _buildActionButton(
-            icon: widget.post.isBookmarked
-                ? Icons.bookmark_rounded
-                : Icons.bookmark_border_rounded,
-            label: _formatCount(widget.post.bookmarkCount),
-            color: widget.post.isBookmarked
-                ? AppTheme.primaryGreen
-                : const Color(0xFF6B7280),
-            onTap: () => widget.controller.toggleBookmark(widget.post),
-          ),
-          const Spacer(),
-          GestureDetector(
-            onTap: () => widget.controller.share(widget.post),
-            child: Container(
-              padding: const EdgeInsets.all(8),
-              decoration: BoxDecoration(
-                color: Colors.grey[100],
-                borderRadius: BorderRadius.circular(10),
-              ),
-              child: const Icon(
-                Icons.share_outlined,
-                size: 20,
-                color: Color(0xFF6B7280),
+      child: Obx(() {
+        // 从controller获取最新的post数据
+        final currentPost = widget.controller.posts.firstWhere(
+          (p) => p.id == widget.post.id,
+          orElse: () => widget.post,
+        );
+        
+        return Row(
+          children: [
+            _buildActionButton(
+              icon: currentPost.isLiked
+                  ? Icons.favorite_rounded
+                  : Icons.favorite_border_rounded,
+              label: _formatCount(currentPost.likeCount),
+              color: currentPost.isLiked ? Colors.red : const Color(0xFF6B7280),
+              onTap: () => widget.controller.toggleLike(widget.post.id),
+            ),
+            const SizedBox(width: 16),
+            _buildActionButton(
+              icon: Icons.chat_bubble_outline_rounded,
+              label: _formatCount(currentPost.commentCount),
+              color: const Color(0xFF6B7280),
+              onTap: () => widget.controller.showComments(currentPost),
+            ),
+            const SizedBox(width: 16),
+            _buildActionButton(
+              icon: currentPost.isBookmarked
+                  ? Icons.bookmark_rounded
+                  : Icons.bookmark_border_rounded,
+              label: _formatCount(currentPost.bookmarkCount),
+              color: currentPost.isBookmarked
+                  ? AppTheme.primaryGreen
+                  : const Color(0xFF6B7280),
+              onTap: () => widget.controller.toggleBookmark(widget.post.id),
+            ),
+            const Spacer(),
+            Material(
+              color: Colors.transparent,
+              child: InkWell(
+                onTap: () => widget.controller.share(currentPost),
+                borderRadius: BorderRadius.circular(12),
+                splashColor: Colors.grey.withOpacity(0.2),
+                child: Container(
+                  padding: const EdgeInsets.all(10),
+                  decoration: BoxDecoration(
+                    color: Colors.grey[100],
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: const Icon(
+                    Icons.share_outlined,
+                    size: 20,
+                    color: Color(0xFF6B7280),
+                  ),
+                ),
               ),
             ),
-          ),
-        ],
-      ),
+          ],
+        );
+      }),
     );
   }
 
@@ -815,27 +852,37 @@ class _PostCardState extends State<_PostCard> with SingleTickerProviderStateMixi
     required Color color,
     required VoidCallback onTap,
   }) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Row(
-        children: [
-          Icon(icon, size: 22, color: color),
-          const SizedBox(width: 6),
-          Text(
-            label,
-            style: TextStyle(
-              fontSize: 14,
-              fontWeight: FontWeight.w600,
-              color: color,
-            ),
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(12),
+        splashColor: color.withOpacity(0.15),
+        highlightColor: color.withOpacity(0.08),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 3, vertical: 10),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(icon, size: 22, color: color),
+              const SizedBox(width: 6),
+              Text(
+                label,
+                style: TextStyle(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w600,
+                  color: color,
+                ),
+              ),
+            ],
           ),
-        ],
+        ),
       ),
     );
   }
 
   Widget _buildCommentsPreview() {
-    return GestureDetector(
+    return InkWell(
       onTap: () => widget.controller.showComments(widget.post),
       child: Container(
         padding: const EdgeInsets.fromLTRB(16, 12, 16, 16),
@@ -934,7 +981,7 @@ class _CommentsBottomSheetState extends State<_CommentsBottomSheet> {
         id: '1',
         userId: 'user3',
         username: 'Liam Wilson',
-        avatarUrl: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Liam',
+        avatarUrl: 'https://i.pravatar.cc/150?img=15',
         content: "Beautiful plant! What's the species?",
         likeCount: 5,
         postedAt: DateTime.now().subtract(const Duration(hours: 2)),
@@ -943,7 +990,7 @@ class _CommentsBottomSheetState extends State<_CommentsBottomSheet> {
         id: '2',
         userId: 'user4',
         username: 'Olivia Martinez',
-        avatarUrl: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Olivia',
+        avatarUrl: 'https://i.pravatar.cc/150?img=25',
         content: 'Looks like a Monstera Deliciosa. I have one too! 🌿',
         likeCount: 3,
         postedAt: DateTime.now().subtract(const Duration(hours: 1)),
@@ -958,7 +1005,7 @@ class _CommentsBottomSheetState extends State<_CommentsBottomSheet> {
       id: DateTime.now().toString(),
       userId: 'current_user',
       username: 'You',
-      avatarUrl: 'https://api.dicebear.com/7.x/avataaars/svg?seed=You',
+      avatarUrl: 'https://i.pravatar.cc/150?img=68',
       content: _commentController.text.trim(),
       likeCount: 0,
       postedAt: DateTime.now(),
@@ -1029,8 +1076,9 @@ class _CommentsBottomSheetState extends State<_CommentsBottomSheet> {
                   color: Color(0xFF122017),
                 ),
               ),
-              GestureDetector(
+              InkWell(
                 onTap: () => Get.back(),
+                borderRadius: BorderRadius.circular(12),
                 child: Container(
                   width: 40,
                   height: 40,
@@ -1098,6 +1146,7 @@ class _CommentsBottomSheetState extends State<_CommentsBottomSheet> {
       itemCount: _comments.length,
       itemBuilder: (context, index) {
         return _CommentItem(
+          key: ValueKey(_comments[index].id),
           comment: _comments[index],
           index: index,
         );
@@ -1149,10 +1198,11 @@ class _CommentsBottomSheetState extends State<_CommentsBottomSheet> {
               ),
             ),
             const SizedBox(width: 12),
-            GestureDetector(
+            InkWell(
               onTap: _commentController.text.trim().isNotEmpty
                   ? _sendComment
                   : null,
+              borderRadius: BorderRadius.circular(24),
               child: Container(
                 width: 48,
                 height: 48,
@@ -1196,6 +1246,7 @@ class _CommentItem extends StatefulWidget {
   final int index;
 
   const _CommentItem({
+    super.key,
     required this.comment,
     required this.index,
   });
@@ -1205,7 +1256,7 @@ class _CommentItem extends StatefulWidget {
 }
 
 class _CommentItemState extends State<_CommentItem> {
-  bool _isLiked = false;
+  late bool _isLiked;
   bool _isVisible = false;
 
   @override
@@ -1221,6 +1272,7 @@ class _CommentItemState extends State<_CommentItem> {
   }
 
   void _toggleLike() {
+    HapticFeedback.lightImpact();
     setState(() {
       _isLiked = !_isLiked;
       if (_isLiked) {
@@ -1256,20 +1308,36 @@ class _CommentItemState extends State<_CommentItem> {
                 ),
                 child: CircleAvatar(
                   radius: 20,
-                  backgroundImage: widget.comment.avatarUrl != null
-                      ? NetworkImage(widget.comment.avatarUrl!)
-                      : null,
                   backgroundColor: AppTheme.primaryGreen.withOpacity(0.1),
-                  child: widget.comment.avatarUrl == null
-                      ? Text(
+                  child: widget.comment.avatarUrl != null
+                      ? ClipOval(
+                          child: Image.network(
+                            widget.comment.avatarUrl!,
+                            width: 40,
+                            height: 40,
+                            fit: BoxFit.cover,
+                            errorBuilder: (context, error, stackTrace) {
+                              return Center(
+                                child: Text(
+                                  widget.comment.username[0].toUpperCase(),
+                                  style: const TextStyle(
+                                    color: AppTheme.primaryGreen,
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 16,
+                                  ),
+                                ),
+                              );
+                            },
+                          ),
+                        )
+                      : Text(
                           widget.comment.username[0].toUpperCase(),
                           style: const TextStyle(
                             color: AppTheme.primaryGreen,
                             fontWeight: FontWeight.bold,
                             fontSize: 16,
                           ),
-                        )
-                      : null,
+                        ),
                 ),
               ),
               const SizedBox(width: 12),
@@ -1317,36 +1385,55 @@ class _CommentItemState extends State<_CommentItem> {
                           ),
                         ),
                         const SizedBox(width: 16),
-                        GestureDetector(
+                        InkWell(
                           onTap: _toggleLike,
-                          child: Row(
-                            children: [
-                              Icon(
-                                _isLiked
-                                    ? Icons.favorite_rounded
-                                    : Icons.favorite_border_rounded,
-                                size: 16,
-                                color: _isLiked ? Colors.red : Colors.grey[600],
-                              ),
-                              const SizedBox(width: 4),
-                              Text(
-                                widget.comment.likeCount.toString(),
-                                style: TextStyle(
-                                  fontSize: 12,
-                                  fontWeight: FontWeight.w600,
+                          borderRadius: BorderRadius.circular(8),
+                          child: Padding(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 4,
+                              vertical: 4,
+                            ),
+                            child: Row(
+                              children: [
+                                Icon(
+                                  _isLiked
+                                      ? Icons.favorite_rounded
+                                      : Icons.favorite_border_rounded,
+                                  size: 16,
                                   color: _isLiked ? Colors.red : Colors.grey[600],
                                 ),
-                              ),
-                            ],
+                                const SizedBox(width: 4),
+                                Text(
+                                  widget.comment.likeCount.toString(),
+                                  style: TextStyle(
+                                    fontSize: 12,
+                                    fontWeight: FontWeight.w600,
+                                    color: _isLiked ? Colors.red : Colors.grey[600],
+                                  ),
+                                ),
+                              ],
+                            ),
                           ),
                         ),
                         const SizedBox(width: 16),
-                        Text(
-                          'Reply',
-                          style: TextStyle(
-                            fontSize: 12,
-                            fontWeight: FontWeight.w600,
-                            color: Colors.grey[600],
+                        InkWell(
+                          onTap: () {
+                            // 回复功能
+                          },
+                          borderRadius: BorderRadius.circular(8),
+                          child: Padding(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 4,
+                              vertical: 4,
+                            ),
+                            child: Text(
+                              'Reply',
+                              style: TextStyle(
+                                fontSize: 12,
+                                fontWeight: FontWeight.w600,
+                                color: Colors.grey[600],
+                              ),
+                            ),
                           ),
                         ),
                       ],

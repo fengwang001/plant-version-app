@@ -197,7 +197,9 @@ class ProfilePage extends StatelessWidget {
       color: AppTheme.primaryGreen.withOpacity(0.1),
       child: Center(
         child: Text(
-          controller.avatarText.value,
+          controller.avatarText.value.isNotEmpty 
+              ? controller.avatarText.value 
+              : 'SG',
           style: const TextStyle(
             fontSize: 48,
             fontWeight: FontWeight.bold,
@@ -319,7 +321,7 @@ class ProfilePage extends StatelessWidget {
         ),
         const SizedBox(height: 16),
         SizedBox(
-          height: 200,
+          height: 210,
           child: Obx(() {
             if (controller.creations.isEmpty) {
               return _buildEmptyWorks();
@@ -346,6 +348,7 @@ class ProfilePage extends StatelessWidget {
       margin: const EdgeInsets.only(right: 16),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisSize: MainAxisSize.min,
         children: [
           Container(
             width: 160,
@@ -428,7 +431,7 @@ class ProfilePage extends StatelessWidget {
         ),
         const SizedBox(height: 16),
         SizedBox(
-          height: 200,
+          height: 210,
           child: Obx(() {
             final aiVideos = controller.creations
                 .where((c) => c.hasVideo || c.videoUrl != null)
@@ -459,6 +462,7 @@ class ProfilePage extends StatelessWidget {
       margin: const EdgeInsets.only(right: 16),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisSize: MainAxisSize.min,
         children: [
           Container(
             width: 160,
