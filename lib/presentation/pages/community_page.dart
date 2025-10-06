@@ -4,6 +4,7 @@ import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 import '../../core/theme/app_theme.dart';
 import 'create_post_page.dart';
+import 'package:flutter_application_1/presentation/pages/plant_detail_page.dart';
 
 /// 社区帖子模型
 class CommunityPost {
@@ -11,9 +12,11 @@ class CommunityPost {
   final String userId;
   final String username;
   final String? avatarUrl;
-  final String? imageUrl;
+  final String imageUrl;
   final String? videoUrl;
   final bool isVideo;
+  final String title; // Placeholder title
+  final String description; // Placeholder description
   int likeCount;
   int bookmarkCount;
   int commentCount;
@@ -27,7 +30,7 @@ class CommunityPost {
     required this.userId,
     required this.username,
     this.avatarUrl,
-    this.imageUrl,
+    required this.imageUrl,
     this.videoUrl,
     this.isVideo = false,
     required this.likeCount,
@@ -37,6 +40,8 @@ class CommunityPost {
     required this.postedAt,
     this.isLiked = false,
     this.isBookmarked = false,
+    required this.title,
+    required this.description,
   });
 }
 
@@ -268,6 +273,8 @@ class CommunityController extends GetxController {
     return [
       CommunityPost(
         id: '1',
+        title: 'Monstera Deliciosa',
+        description: 'A beautiful Monstera plant thriving in my living room. Loving the large, fenestrated leaves!',
         userId: 'user1',
         username: 'Sophia Chen',
         avatarUrl: 'https://i.pravatar.cc/150?img=1',
@@ -282,6 +289,8 @@ class CommunityController extends GetxController {
       ),
       CommunityPost(
         id: '2',
+        title: 'Fiddle Leaf Fig',
+        description: 'My Fiddle Leaf Fig is growing so well! Any tips on keeping it healthy?',
         userId: 'user2',
         username: 'Ethan Park',
         avatarUrl: 'https://i.pravatar.cc/150?img=12',
@@ -296,6 +305,8 @@ class CommunityController extends GetxController {
       ),
       CommunityPost(
         id: '3',
+        title: 'Succulent Care Tips',
+        description: 'Sharing some quick tips on how to care for your succulents. They\'re easier than you think!',
         userId: 'user3',
         username: 'Oliver Kim',
         avatarUrl: 'https://i.pravatar.cc/150?img=33',
@@ -397,7 +408,7 @@ class CommunityPage extends StatelessWidget {
           const Text(
             'Community',
             style: TextStyle(
-              fontSize: 22,
+              fontSize: 18,
               fontWeight: FontWeight.bold,
               color: Color(0xFF122017),
               letterSpacing: -0.5,
@@ -407,8 +418,8 @@ class CommunityPage extends StatelessWidget {
             onTap: controller.publishPost,
             borderRadius: BorderRadius.circular(16),
             child: Container(
-              width: 48,
-              height: 48,
+              width: 45,
+              height: 45,
               decoration: BoxDecoration(
                 gradient: const LinearGradient(
                   colors: [AppTheme.primaryGreen, Color(0xFF00C896)],
@@ -427,7 +438,7 @@ class CommunityPage extends StatelessWidget {
               child: const Icon(
                 Icons.add_rounded,
                 color: Colors.white,
-                size: 26,
+                size: 28,
               ),
             ),
           ),
@@ -637,7 +648,7 @@ class _PostCardState extends State<_PostCard> with SingleTickerProviderStateMixi
                 Text(
                   widget.post.username,
                   style: const TextStyle(
-                    fontSize: 16,
+                    fontSize: 14,
                     fontWeight: FontWeight.bold,
                     color: Color(0xFF122017),
                   ),
@@ -769,15 +780,30 @@ class _PostCardState extends State<_PostCard> with SingleTickerProviderStateMixi
   }
 
   void _navigateToDetail() {
-    Get.snackbar(
-      'Plant Details',
-      'Navigating to plant detail page...',
-      snackPosition: SnackPosition.BOTTOM,
-      backgroundColor: AppTheme.primaryGreen.withOpacity(0.8),
-      colorText: Colors.white,
-      duration: const Duration(seconds: 2),
-      margin: const EdgeInsets.all(16),
-      icon: const Icon(Icons.spa_outlined, color: Colors.white),
+    // Get.snackbar(
+    //   'Plant Details',
+    //   'Navigating to plant detail page...',
+    //   snackPosition: SnackPosition.BOTTOM,
+    //   backgroundColor: AppTheme.primaryGreen.withOpacity(0.8),
+    //   colorText: Colors.white,
+    //   duration: const Duration(seconds: 2),
+    //   margin: const EdgeInsets.all(16),
+    //   icon: const Icon(Icons.spa_outlined, color: Colors.white),
+    // );
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => PlantDetailPage(
+          name: widget.post.title,
+          description: widget.post.description,
+          imageUrl: widget.post.imageUrl,
+          popularity: widget.post.stat != null ? int.tryParse(widget.post.stat!.replaceAll(RegExp(r'[^0-9]'), '')) ?? 0 : null,
+          isNew: false,
+          isVideo: false,
+          tags: widget.post.tag != null ? [widget.post.tag!] : [],
+          tagColors: widget.post.tag != null && widget.post.tagColor != null ? [widget.post.tagColor!] : [],
+        ),
+      ),
     );
   }
 

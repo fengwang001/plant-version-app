@@ -106,28 +106,67 @@ class _ExplorePageState extends State<ExplorePage> with TickerProviderStateMixin
           filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
           child: Container(
             color: Colors.transparent,
-            padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
+            padding: const EdgeInsets.fromLTRB(8, 8, 8, 4),
             child: SafeArea(
               child: Row(
                 children: [
                   // 搜索框
                   Expanded(
                     child: Container(
+                      height: 48,
                       decoration: BoxDecoration(
                         color: Colors.white,
                         borderRadius: BorderRadius.circular(24),
                         border: Border.all(color: const Color(0xFFE5E7EB)),
                         boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 8, offset: const Offset(0, 2))],
                       ),
-                      child: TextField(
-                        controller: _searchController,
-                        decoration: InputDecoration(
-                          hintText: 'Search for plants',
-                          hintStyle: TextStyle(color: Colors.grey[400], fontSize: 15),
-                          prefixIcon: Icon(Icons.search, color: Colors.grey[400], size: 20),
-                          border: InputBorder.none,
-                          contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                        ),
+                      child: Row(
+                        children: [
+                          // 搜索图标
+                          Padding(
+                            padding: const EdgeInsets.only(left: 16, right: 12),
+                            child: Icon(
+                              Icons.search,
+                              color: Colors.grey[400],
+                              size: 20,
+                            ),
+                          ),
+                          // 输入框
+                          Expanded(
+                            child: TextField(
+                              controller: _searchController,
+                              style: const TextStyle(fontSize: 15),
+                              decoration: InputDecoration(
+                                hintText: 'Search for plants',
+                                hintStyle: TextStyle(color: Colors.grey[400], fontSize: 15),
+                                border: InputBorder.none,
+                                contentPadding: EdgeInsets.zero,
+                              ),
+                              onChanged: (_) {
+                                setState(() {});
+                              },
+                            ),
+                          ),
+                          // 清除按钮（仅在有文字时显示）
+                          if (_searchController.text.isNotEmpty)
+                            GestureDetector(
+                              onTap: () {
+                                setState(() {
+                                  _searchController.clear();
+                                });
+                              },
+                              child: Padding(
+                                padding: const EdgeInsets.only(right: 16),
+                                child: Icon(
+                                  Icons.cancel,
+                                  color: Colors.grey[400],
+                                  size: 20,
+                                ),
+                              ),
+                            )
+                          else
+                            const SizedBox(width: 16),
+                        ],
                       ),
                     ),
                   ),
@@ -166,9 +205,14 @@ class _ExplorePageState extends State<ExplorePage> with TickerProviderStateMixin
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 16),
             child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                const Text('Popular Plants', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Color(0xFF122017))),
+                const Expanded(
+                  child: Text(
+                    'Popular Plants',
+                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Color(0xFF122017)),
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ),
                 TextButton(
                   onPressed: () {
                     Navigator.push(
@@ -186,7 +230,7 @@ class _ExplorePageState extends State<ExplorePage> with TickerProviderStateMixin
           const SizedBox(height: 12),
           // 横向滚动卡片列表
           SizedBox(
-            height: 350, // 进一步增加高度
+            height: 310,
             child: ListView(
               scrollDirection: Axis.horizontal,
               padding: const EdgeInsets.symmetric(horizontal: 16),
@@ -238,9 +282,14 @@ class _ExplorePageState extends State<ExplorePage> with TickerProviderStateMixin
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 16),
             child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                const Text('Latest Discoveries', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Color(0xFF122017))),
+                const Expanded(
+                  child: Text(
+                    'Latest Discoveries',
+                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Color(0xFF122017)),
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ),
                 TextButton(
                   onPressed: () {
                     Navigator.push(
@@ -261,7 +310,7 @@ class _ExplorePageState extends State<ExplorePage> with TickerProviderStateMixin
           const SizedBox(height: 12),
           // 横向滚动卡片列表
           SizedBox(
-            height: 320, // 增加高度防止溢出
+            height: 310,
             child: ListView(
               scrollDirection: Axis.horizontal,
               padding: const EdgeInsets.symmetric(horizontal: 16),
@@ -289,9 +338,14 @@ class _ExplorePageState extends State<ExplorePage> with TickerProviderStateMixin
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 16),
             child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                const Text('Gardening Tips', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Color(0xFF122017))),
+                const Expanded(
+                  child: Text(
+                    'Gardening Tips',
+                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Color(0xFF122017)),
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ),
                 TextButton(
                   onPressed: () {
                     Navigator.push(
@@ -312,7 +366,7 @@ class _ExplorePageState extends State<ExplorePage> with TickerProviderStateMixin
           const SizedBox(height: 12),
           // 横向滚动卡片列表
           SizedBox(
-            height: 310, // 固定高度防止溢出
+            height: 310,
             child: ListView(
               scrollDirection: Axis.horizontal,
               padding: const EdgeInsets.symmetric(horizontal: 16),
@@ -476,11 +530,11 @@ class _PlantCard extends StatefulWidget {
   final String imageUrl;
   final String title;
   final String description;
-  final String? badge; // 徽章文字（如 1.2M）
-  final IconData? badgeIcon; // 徽章图标
-  final Color? badgeColor; // 徽章颜色
-  final List<String> tags; // 标签列表
-  final List<Color> tagColors; // 标签颜色列表
+  final String? badge;
+  final IconData? badgeIcon;
+  final Color? badgeColor;
+  final List<String> tags;
+  final List<Color> tagColors;
   
   const _PlantCard({
     required this.imageUrl,
@@ -507,7 +561,6 @@ class _PlantCardState extends State<_PlantCard> {
       onTapUp: (_) => setState(() => _isHovered = false),
       onTapCancel: () => setState(() => _isHovered = false),
       onTap: () {
-        // 导航到详情页
         Navigator.push(
           context,
           MaterialPageRoute(
@@ -534,106 +587,124 @@ class _PlantCardState extends State<_PlantCard> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // 图片容器
-              Container(
-                width: 220,
-                height: 220,
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(12),
-                  boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.1), blurRadius: 8, offset: const Offset(0, 2))],
-                ),
-                child: ClipRRect(
-                  borderRadius: BorderRadius.circular(12),
-                  child: Stack(
-                    fit: StackFit.expand,
-                    children: [
-                      // Hero 动画图片
-                      Hero(
-                        tag: 'plant_${widget.title}_${widget.imageUrl}',
-                        child: Image.network(
-                          widget.imageUrl,
-                          fit: BoxFit.cover,
-                          errorBuilder: (context, error, stackTrace) => Container(
-                            color: Colors.grey[300],
-                            child: const Icon(Icons.image, size: 60),
+              // 图片容器 - 使用 Expanded
+              Expanded(
+                flex: 7,
+                child: Container(
+                  width: 220,
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(12),
+                    boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.1), blurRadius: 8, offset: const Offset(0, 2))],
+                  ),
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.circular(12),
+                    child: Stack(
+                      fit: StackFit.expand,
+                      children: [
+                        Hero(
+                          tag: 'plant_${widget.title}_${widget.imageUrl}',
+                          child: Image.network(
+                            widget.imageUrl,
+                            fit: BoxFit.cover,
+                            errorBuilder: (context, error, stackTrace) => Container(
+                              color: Colors.grey[300],
+                              child: const Icon(Icons.image, size: 60),
+                            ),
                           ),
                         ),
-                      ),
-                      // 徽章（如果有）
-                      if (widget.badge != null)
-                        Positioned(
-                          top: 8,
-                          right: 8,
-                          child: Container(
-                            constraints: const BoxConstraints(maxWidth: 65), // 限制最大宽度防止溢出
-                            padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 3),
-                            decoration: BoxDecoration(
-                              color: Colors.black.withOpacity(0.5),
-                              borderRadius: BorderRadius.circular(10),
-                            ),
-                            child: Row(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                Icon(widget.badgeIcon, color: widget.badgeColor, size: 10),
-                                const SizedBox(width: 2),
-                                Flexible(
-                                  child: Text(
-                                    widget.badge!,
-                                    style: const TextStyle(color: Colors.white, fontSize: 9, fontWeight: FontWeight.bold),
-                                    overflow: TextOverflow.ellipsis,
-                                  ),
-                                ),
+                        // 渐变遮罩层
+                        Container(
+                          decoration: BoxDecoration(
+                            gradient: LinearGradient(
+                              begin: Alignment.topCenter,
+                              end: Alignment.bottomCenter,
+                              colors: [
+                                Colors.transparent,
+                                Colors.black.withOpacity(0.1),
+                                Colors.black.withOpacity(0.3),
                               ],
+                              stops: const [0.5, 0.8, 1.0],
                             ),
                           ),
                         ),
-                    ],
+                        if (widget.badge != null)
+                          Positioned(
+                            top: 8,
+                            right: 8,
+                            child: Container(
+                              constraints: const BoxConstraints(maxWidth: 70),
+                              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 4),
+                              decoration: BoxDecoration(
+                                color: Colors.black.withOpacity(0.6),
+                                borderRadius: BorderRadius.circular(10),
+                              ),
+                              child: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Icon(widget.badgeIcon, color: widget.badgeColor, size: 11),
+                                  const SizedBox(width: 3),
+                                  Flexible(
+                                    child: Text(
+                                      widget.badge!,
+                                      style: const TextStyle(color: Colors.white, fontSize: 9, fontWeight: FontWeight.bold),
+                                      overflow: TextOverflow.ellipsis,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                      ],
+                    ),
                   ),
                 ),
               ),
-              const SizedBox(height: 8),
-              // 文字信息容器 - 固定高度防止溢出
-              SizedBox(
-                height: 95, // 增加高度
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    // 标题
-                    Text(
-                      widget.title,
-                      style: const TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: Color(0xFF122017)),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                    const SizedBox(height: 2),
-                    // 描述
-                    Text(
-                      widget.description,
-                      style: TextStyle(fontSize: 10, color: Colors.grey[600]),
-                      maxLines: 2,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                    if (widget.tags.isNotEmpty) const SizedBox(height: 3),
-                    // 标签 - 最多显示2个
-                    if (widget.tags.isNotEmpty)
-                      Wrap(
-                        spacing: 3,
-                        runSpacing: 2,
-                        children: List.generate(widget.tags.length > 2 ? 2 : widget.tags.length, (index) {
-                          return Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1),
-                            decoration: BoxDecoration(
-                              color: widget.tagColors[index].withOpacity(0.15),
-                              borderRadius: BorderRadius.circular(8),
-                            ),
-                            child: Text(
-                              widget.tags[index],
-                              style: TextStyle(fontSize: 8, fontWeight: FontWeight.w600, color: widget.tagColors[index]),
-                            ),
-                          );
-                        }),
+              // 文本信息区域 - 使用 Expanded
+              Expanded(
+                flex: 3,
+                child: Padding(
+                  padding: const EdgeInsets.only(top: 4),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      // 标题
+                      Text(
+                        widget.title,
+                        style: const TextStyle(fontSize: 11.5, fontWeight: FontWeight.bold, color: Color(0xFF122017)),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
                       ),
-                  ],
+                      const SizedBox(height: 1),
+                      // 描述
+                      Expanded(
+                        child: Text(
+                          widget.description,
+                          style: TextStyle(fontSize: 9, color: Colors.grey[600]),
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                      // 标签
+                      if (widget.tags.isNotEmpty)
+                        Wrap(
+                          spacing: 3,
+                          runSpacing: 2,
+                          children: List.generate(widget.tags.length > 2 ? 2 : widget.tags.length, (index) {
+                            return Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 1),
+                              decoration: BoxDecoration(
+                                color: widget.tagColors[index].withOpacity(0.15),
+                                borderRadius: BorderRadius.circular(5),
+                              ),
+                              child: Text(
+                                widget.tags[index],
+                                style: TextStyle(fontSize: 7, fontWeight: FontWeight.w600, color: widget.tagColors[index]),
+                              ),
+                            );
+                          }),
+                        ),
+                    ],
+                  ),
                 ),
               ),
             ],
@@ -646,10 +717,10 @@ class _PlantCardState extends State<_PlantCard> {
 
 /// 视频卡片组件
 class _VideoCard extends StatefulWidget {
-  final String thumbnailUrl; // 缩略图URL
+  final String thumbnailUrl;
   final String title;
-  final String author; // 作者
-  final String likes; // 点赞数
+  final String author;
+  final String likes;
   final Color iconColor;
   
   const _VideoCard({
@@ -674,7 +745,6 @@ class _VideoCardState extends State<_VideoCard> {
       onTapUp: (_) => setState(() => _isHovered = false),
       onTapCancel: () => setState(() => _isHovered = false),
       onTap: () {
-        // 导航到详情页
         Navigator.push(
           context,
           MaterialPageRoute(
@@ -701,86 +771,90 @@ class _VideoCardState extends State<_VideoCard> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // 视频缩略图
-              Container(
-                width: 220,
-                height: 220,
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(12),
-                  boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.1), blurRadius: 8, offset: const Offset(0, 2))],
-                ),
-                child: ClipRRect(
-                  borderRadius: BorderRadius.circular(12),
-                  child: Stack(
-                    fit: StackFit.expand,
-                    children: [
-                      // Hero 动画缩略图
-                      Hero(
-                        tag: 'plant_${widget.title}_${widget.thumbnailUrl}',
-                        child: Image.network(
-                          widget.thumbnailUrl,
-                          fit: BoxFit.cover,
-                          errorBuilder: (context, error, stackTrace) => Container(
-                            color: Colors.grey[300],
-                            child: const Icon(Icons.video_library, size: 60),
-                          ),
-                        ),
-                      ),
-                      // 渐变遮罩和播放按钮
-                      Container(
-                        decoration: BoxDecoration(
-                          gradient: LinearGradient(
-                            begin: Alignment.topCenter,
-                            end: Alignment.bottomCenter,
-                            colors: [Colors.transparent, Colors.black.withOpacity(0.3)],
-                          ),
-                        ),
-                        child: const Center(
-                          child: Icon(Icons.play_circle_outline, color: Colors.white, size: 48),
-                        ),
-                      ),
-                    ],
+              // 视频缩略图 - 使用 Expanded
+              Expanded(
+                flex: 7,
+                child: Container(
+                  width: 220,
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(12),
+                    boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.1), blurRadius: 8, offset: const Offset(0, 2))],
                   ),
-                ),
-              ),
-              const SizedBox(height: 8),
-              // 视频信息 - 固定高度防止溢出
-              SizedBox(
-                height: 70, // 增加高度
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    // 标题
-                    Text(
-                      widget.title,
-                      style: const TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: Color(0xFF122017)),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                    const SizedBox(height: 2),
-                    // 作者
-                    Text(
-                      widget.author,
-                      style: TextStyle(fontSize: 10, color: Colors.grey[600]),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                    const SizedBox(height: 3),
-                    // 点赞数
-                    Row(
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.circular(12),
+                    child: Stack(
+                      fit: StackFit.expand,
                       children: [
-                        Icon(Icons.thumb_up, size: 9, color: widget.iconColor),
-                        const SizedBox(width: 2),
-                        Flexible(
-                          child: Text(
-                            widget.likes,
-                            style: const TextStyle(fontSize: 9, fontWeight: FontWeight.w600, color: Color(0xFF122017)),
-                            overflow: TextOverflow.ellipsis,
+                        Hero(
+                          tag: 'plant_${widget.title}_${widget.thumbnailUrl}',
+                          child: Image.network(
+                            widget.thumbnailUrl,
+                            fit: BoxFit.cover,
+                            errorBuilder: (context, error, stackTrace) => Container(
+                              color: Colors.grey[300],
+                              child: const Icon(Icons.video_library, size: 60),
+                            ),
+                          ),
+                        ),
+                        Container(
+                          decoration: BoxDecoration(
+                            gradient: LinearGradient(
+                              begin: Alignment.topCenter,
+                              end: Alignment.bottomCenter,
+                              colors: [
+                                Colors.black.withOpacity(0.1),
+                                Colors.black.withOpacity(0.3),
+                                Colors.black.withOpacity(0.5),
+                              ],
+                              stops: const [0.0, 0.5, 1.0],
+                            ),
+                          ),
+                          child: const Center(
+                            child: Icon(Icons.play_circle_outline, color: Colors.white, size: 48),
                           ),
                         ),
                       ],
                     ),
-                  ],
+                  ),
+                ),
+              ),
+              // 视频信息 - 使用 Expanded
+              Expanded(
+                flex: 3,
+                child: Padding(
+                  padding: const EdgeInsets.only(top: 4),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        widget.title,
+                        style: const TextStyle(fontSize: 11.5, fontWeight: FontWeight.bold, color: Color(0xFF122017)),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                      const SizedBox(height: 1),
+                      Expanded(
+                        child: Text(
+                          widget.author,
+                          style: TextStyle(fontSize: 9, color: Colors.grey[600]),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                      Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(Icons.thumb_up, size: 8, color: widget.iconColor),
+                          const SizedBox(width: 2),
+                          Text(
+                            widget.likes,
+                            style: const TextStyle(fontSize: 8, fontWeight: FontWeight.w600, color: Color(0xFF122017)),
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
                 ),
               ),
             ],
@@ -796,10 +870,10 @@ class _DiscoveryCard extends StatefulWidget {
   final String imageUrl;
   final String title;
   final String description;
-  final String? stat; // 统计数据（如浏览量）
-  final IconData? icon; // 统计图标
+  final String? stat;
+  final IconData? icon;
   final Color? iconColor;
-  final String? tag; // 单个标签
+  final String? tag;
   final Color? tagColor;
   
   const _DiscoveryCard({
@@ -827,7 +901,6 @@ class _DiscoveryCardState extends State<_DiscoveryCard> {
       onTapUp: (_) => setState(() => _isHovered = false),
       onTapCancel: () => setState(() => _isHovered = false),
       onTap: () {
-        // 导航到详情页
         Navigator.push(
           context,
           MaterialPageRoute(
@@ -853,80 +926,101 @@ class _DiscoveryCardState extends State<_DiscoveryCard> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // 图片
-              Container(
-                width: 220,
-                height: 220,
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(12),
-                  boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.1), blurRadius: 8, offset: const Offset(0, 2))],
-                ),
-                child: ClipRRect(
-                  borderRadius: BorderRadius.circular(12),
-                  child: Hero(
-                    tag: 'plant_${widget.title}_${widget.imageUrl}',
-                    child: Image.network(
-                      widget.imageUrl,
-                      fit: BoxFit.cover,
-                      errorBuilder: (context, error, stackTrace) => Container(
-                        color: Colors.grey[300],
-                        child: const Icon(Icons.image, size: 60),
-                      ),
+              // 图片 - 使用 Expanded
+              Expanded(
+                flex: 7,
+                child: Container(
+                  width: 220,
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(12),
+                    boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.1), blurRadius: 8, offset: const Offset(0, 2))],
+                  ),
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.circular(12),
+                    child: Stack(
+                      fit: StackFit.expand,
+                      children: [
+                        Hero(
+                          tag: 'plant_${widget.title}_${widget.imageUrl}',
+                          child: Image.network(
+                            widget.imageUrl,
+                            fit: BoxFit.cover,
+                            errorBuilder: (context, error, stackTrace) => Container(
+                              color: Colors.grey[300],
+                              child: const Icon(Icons.image, size: 60),
+                            ),
+                          ),
+                        ),
+                        // 渐变遮罩层
+                        Container(
+                          decoration: BoxDecoration(
+                            gradient: LinearGradient(
+                              begin: Alignment.topCenter,
+                              end: Alignment.bottomCenter,
+                              colors: [
+                                Colors.transparent,
+                                Colors.black.withOpacity(0.1),
+                                Colors.black.withOpacity(0.3),
+                              ],
+                              stops: const [0.5, 0.8, 1.0],
+                            ),
+                          ),
+                        ),
+                      ],
                     ),
                   ),
                 ),
               ),
-              const SizedBox(height: 8),
-              // 信息容器 - 固定高度防止溢出
-              SizedBox(
-                height: 70, // 增加高度
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    // 标题
-                    Text(
-                      widget.title,
-                      style: const TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: Color(0xFF122017)),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                    const SizedBox(height: 2),
-                    // 描述
-                    Text(
-                      widget.description,
-                      style: TextStyle(fontSize: 10, color: Colors.grey[600]),
-                      maxLines: 2,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                    const SizedBox(height: 3),
-                    // 统计数据或标签
-                    if (widget.stat != null && widget.icon != null)
-                      Row(
-                        children: [
-                          Icon(widget.icon, size: 9, color: widget.iconColor),
-                          const SizedBox(width: 2),
-                          Flexible(
-                            child: Text(
-                              widget.stat!,
-                              style: const TextStyle(fontSize: 9, fontWeight: FontWeight.w600, color: Color(0xFF122017)),
-                              overflow: TextOverflow.ellipsis,
-                            ),
-                          ),
-                        ],
-                      )
-                    else if (widget.tag != null)
-                      Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1),
-                        decoration: BoxDecoration(
-                          color: widget.tagColor?.withOpacity(0.15) ?? Colors.grey.withOpacity(0.15),
-                          borderRadius: BorderRadius.circular(8),
-                        ),
+              // 信息 - 使用 Expanded
+              Expanded(
+                flex: 3,
+                child: Padding(
+                  padding: const EdgeInsets.only(top: 4),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        widget.title,
+                        style: const TextStyle(fontSize: 11.5, fontWeight: FontWeight.bold, color: Color(0xFF122017)),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                      const SizedBox(height: 1),
+                      Expanded(
                         child: Text(
-                          widget.tag!,
-                          style: TextStyle(fontSize: 8, fontWeight: FontWeight.w600, color: widget.tagColor ?? Colors.grey[700]),
+                          widget.description,
+                          style: TextStyle(fontSize: 9, color: Colors.grey[600]),
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
                         ),
                       ),
-                  ],
+                      if (widget.stat != null && widget.icon != null)
+                        Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Icon(widget.icon, size: 8, color: widget.iconColor),
+                            const SizedBox(width: 2),
+                            Text(
+                              widget.stat!,
+                              style: const TextStyle(fontSize: 8, fontWeight: FontWeight.w600, color: Color(0xFF122017)),
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ],
+                        )
+                      else if (widget.tag != null)
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 1),
+                          decoration: BoxDecoration(
+                            color: widget.tagColor?.withOpacity(0.15) ?? Colors.grey.withOpacity(0.15),
+                            borderRadius: BorderRadius.circular(5),
+                          ),
+                          child: Text(
+                            widget.tag!,
+                            style: TextStyle(fontSize: 7, fontWeight: FontWeight.w600, color: widget.tagColor ?? Colors.grey[700]),
+                          ),
+                        ),
+                    ],
+                  ),
                 ),
               ),
             ],
