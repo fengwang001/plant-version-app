@@ -4,6 +4,7 @@ import 'package:image_picker/image_picker.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:get/get.dart';
 import 'package:camera/camera.dart';
+import 'package:device_info_plus/device_info_plus.dart';
 
 // ==================== ImageService 完整代码 ====================
 
@@ -71,8 +72,33 @@ class ImageService {
 
   /// 请求相册权限
   static Future<bool> _requestPhotosPermission() async {
-    final PermissionStatus status = await Permission.photos.request();
-    return status == PermissionStatus.granted;
+    // 根据平台请求不同的权限
+    if (Platform.isIOS) {
+      final PermissionStatus status = await Permission.photos.request();
+      return status == PermissionStatus.granted || status == PermissionStatus.limited;
+    } else if (Platform.isAndroid) {
+      // Android 13+ 需要请求特定权限
+      if (await _getAndroidVersion() >= 33) {
+        final PermissionStatus status = await Permission.photos.request();
+        return status == PermissionStatus.granted || status == PermissionStatus.limited;
+      } else {
+        // Android 12及以下使用storage权限
+        final PermissionStatus status = await Permission.storage.request();
+        return status == PermissionStatus.granted;
+      }
+    }
+    return false;
+  }
+
+  /// 获取Android版本
+  static Future<int> _getAndroidVersion() async {
+    if (!Platform.isAndroid) return 0;
+    try {
+      // 这里简化处理，实际项目中可以用device_info_plus获取
+      return 33; // 假设是Android 13+
+    } catch (e) {
+      return 30;
+    }
   }
 
   /// 从相机拍照
@@ -104,10 +130,29 @@ class ImageService {
   /// 从相册选择
   static Future<File?> pickImageFromGallery() async {
     try {
-      final bool hasPermission = await _requestPhotosPermission();
+      // 先检查权限
+      bool hasPermission = await _checkPhotosPermission();
+      
       if (!hasPermission) {
-        Get.snackbar('权限不足', '需要相册权限才能选择照片');
-        return null;
+        // 如果没有权限，请求权限
+        hasPermission = await _requestPhotosPermission();
+        
+        if (!hasPermission) {
+          // 权限被拒绝，显示提示并引导用户去设置
+          Get.snackbar(
+            '权限不足', 
+            '需要相册权限才能选择照片，请在设置中开启',
+            duration: Duration(seconds: 3),
+            mainButton: TextButton(
+              onPressed: () {
+                openAppSettings();
+                Get.back();
+              },
+              child: Text('去设置', style: TextStyle(color: Colors.white)),
+            ),
+          );
+          return null;
+        }
       }
 
       final XFile? image = await _picker.pickImage(
@@ -122,9 +167,31 @@ class ImageService {
       }
       return null;
     } catch (e) {
-      Get.snackbar('选择失败', '无法打开相册：$e');
+      print('选择照片错误详情: $e');
+      Get.snackbar(
+        '选择失败', 
+        '无法打开相册，请检查应用权限设置',
+        duration: Duration(seconds: 3),
+      );
       return null;
     }
+  }
+
+  /// 检查相册权限
+  static Future<bool> _checkPhotosPermission() async {
+    if (Platform.isIOS) {
+      final status = await Permission.photos.status;
+      return status == PermissionStatus.granted || status == PermissionStatus.limited;
+    } else if (Platform.isAndroid) {
+      if (await _getAndroidVersion() >= 33) {
+        final status = await Permission.photos.status;
+        return status == PermissionStatus.granted || status == PermissionStatus.limited;
+      } else {
+        final status = await Permission.storage.status;
+        return status == PermissionStatus.granted;
+      }
+    }
+    return false;
   }
 
   /// 显示图片来源选择对话框
@@ -196,17 +263,31 @@ class ImageService {
   static Future<File?> showHalfScreenCameraScanDialog(BuildContext context) async {
     File? selectedImage;
     
+    print('🎬 打开 AR 相机扫描对话框');
+    
     await Get.bottomSheet(
       _ARCameraScanWidget(
         onImageCaptured: (File? image) {
+          print('📸 拍照完成，图片: ${image?.path}');
           selectedImage = image;
           Get.back();
         },
         onGallerySelected: () async {
+          print('🖼️ onGallerySelected 回调被触发！');
+          print('🔙 关闭相机对话框');
           Get.back();
+          
+          print('📂 准备打开相册...');
           selectedImage = await pickImageFromGallery();
+          
+          if (selectedImage != null) {
+            print('✅ 从相册选择成功: ${selectedImage!.path}');
+          } else {
+            print('❌ 用户取消选择或选择失败');
+          }
         },
         onClose: () {
+          print('❌ 用户关闭相机');
           Get.back();
         },
       ),
@@ -215,6 +296,7 @@ class ImageService {
       enableDrag: false,
     );
     
+    print('↩️ 相机对话框关闭，返回图片: ${selectedImage?.path ?? "null"}');
     return selectedImage;
   }
 
@@ -428,7 +510,12 @@ class _ARCameraScanWidgetState extends State<_ARCameraScanWidget> {
               children: [
                 // 左下角相册图标 - 点击选择照片
                 GestureDetector(
-                  onTap: widget.onGallerySelected,
+                  onTap: () {
+                    print('🖼️ 相册图标被点击！');
+                    print('🔍 调用 onGallerySelected 回调');
+                    widget.onGallerySelected();
+                  },
+                  behavior: HitTestBehavior.opaque, // 确保整个区域可点击
                   child: Container(
                     width: 50,
                     height: 50,
@@ -512,10 +599,17 @@ class _ARCameraScanWidgetState extends State<_ARCameraScanWidget> {
             ),
           ),
 
-          // 拍照按钮 (隐藏的触摸区域)
-          Positioned.fill(
+          // 拍照按钮 (隐藏的触摸区域) - 降低优先级，避免覆盖底部按钮
+          Positioned(
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 200, // 👈 重要：底部留出空间，不覆盖相册按钮
             child: GestureDetector(
-              onTap: _capturePhoto,
+              onTap: () {
+                print('📸 相机区域被点击，准备拍照');
+                _capturePhoto();
+              },
               child: Container(
                 color: Colors.transparent,
               ),
@@ -1391,4 +1485,95 @@ class _CircleArcPainter extends CustomPainter {
 
   @override
   bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
+}
+
+// ==================== 使用示例 ====================
+
+/// 主应用入口示例
+class MyApp extends StatelessWidget {
+  const MyApp({Key? key}) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return GetMaterialApp(
+      title: 'AI识别应用',
+      theme: ThemeData(
+        primarySwatch: Colors.teal,
+        scaffoldBackgroundColor: Colors.grey[50],
+      ),
+      home: const HomePage(),
+    );
+  }
+}
+
+/// 主页示例
+class HomePage extends StatelessWidget {
+  const HomePage({Key? key}) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('AI植物识别'),
+        centerTitle: true,
+      ),
+      body: Center(
+        child: Padding(
+          padding: const EdgeInsets.all(20),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(
+                Icons.eco,
+                size: 100,
+                color: Colors.teal,
+              ),
+              const SizedBox(height: 20),
+              const Text(
+                '智能植物识别',
+                style: TextStyle(
+                  fontSize: 28,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              const SizedBox(height: 10),
+              Text(
+                '拍照或上传图片，AI帮你识别植物',
+                style: TextStyle(
+                  fontSize: 16,
+                  color: Colors.grey[600],
+                ),
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: 40),
+              ElevatedButton(
+                onPressed: () {
+                  Get.to(() => const PhotoRecognitionPage());
+                },
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.teal,
+                  foregroundColor: Colors.white,
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 40,
+                    vertical: 16,
+                  ),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(30),
+                  ),
+                  elevation: 5,
+                ),
+                child: const Text(
+                  '开始识别',
+                  style: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
 }
