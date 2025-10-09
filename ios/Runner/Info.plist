@@ -45,5 +45,16 @@
 	<true/>
 	<key>UIApplicationSupportsIndirectInputEvents</key>
 	<true/>
+	<!-- 相机权限 -->
+    <key>NSCameraUsageDescription</key>
+    <string>需要使用相机进行植物拍照识别</string>
+    
+    <!-- 相册权限 -->
+    <key>NSPhotoLibraryUsageDescription</key>
+    <string>需要访问相册以选择植物照片进行识别</string>
+    
+    <!-- iOS 14+ 限制访问 -->
+    <key>NSPhotoLibraryAddUsageDescription</key>
+    <string>需要保存识别结果到相册</string>
 </dict>
 </plist>
