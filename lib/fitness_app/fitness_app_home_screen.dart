@@ -293,12 +293,35 @@ class _FitnessAppHomeScreenState extends State<FitnessAppHomeScreen>
   }
 
   void onAddClick() {
-    print('➕ 底部导航栏添加按钮点击');
-    // 调用摄像头 扫描植物
-    final controller = Get.isRegistered<HomeController>()
-        ? Get.find<HomeController>()
-        : Get.put(HomeController());
-    controller.startPlantIdentification();
+    print('🎯 ===== 底部导航栏 + 按钮点击 =====');
+    print('📍 当前时间: ${DateTime.now()}');
+    
+    try {
+      // 检查 HomeController 是否已注册
+      if (!Get.isRegistered<HomeController>()) {
+        print('⚠️ HomeController 未注册，正在注册...');
+        Get.put(HomeController());
+      }
+      
+      final controller = Get.find<HomeController>();
+      print('✅ 找到 HomeController 实例');
+      print('🔄 调用 startPlantIdentification()');
+      
+      controller.startPlantIdentification();
+      
+    } catch (e, stackTrace) {
+      print('❌ onAddClick 发生错误');
+      print('错误: $e');
+      print('堆栈: $stackTrace');
+      
+      Get.snackbar(
+        '系统错误',
+        '无法启动识别功能，请重启应用',
+        snackPosition: SnackPosition.BOTTOM,
+        backgroundColor: Colors.red.withOpacity(0.8),
+        colorText: Colors.white,
+      );
+    }
   }
 
   /// 导航到个人资料页面

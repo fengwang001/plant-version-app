@@ -187,7 +187,7 @@ class CommunityController extends GetxController {
             const Text(
               'Share Post',
               style: TextStyle(
-                fontSize: 20,
+                fontSize: 18,
                 fontWeight: FontWeight.bold,
                 color: Color(0xFF122017),
               ),
@@ -779,17 +779,7 @@ class _PostCardState extends State<_PostCard> with SingleTickerProviderStateMixi
     );
   }
 
-  void _navigateToDetail() {
-    // Get.snackbar(
-    //   'Plant Details',
-    //   'Navigating to plant detail page...',
-    //   snackPosition: SnackPosition.BOTTOM,
-    //   backgroundColor: AppTheme.primaryGreen.withOpacity(0.8),
-    //   colorText: Colors.white,
-    //   duration: const Duration(seconds: 2),
-    //   margin: const EdgeInsets.all(16),
-    //   icon: const Icon(Icons.spa_outlined, color: Colors.white),
-    // );
+   void _navigateToDetail() {
     Navigator.push(
       context,
       MaterialPageRoute(
@@ -797,14 +787,21 @@ class _PostCardState extends State<_PostCard> with SingleTickerProviderStateMixi
           name: widget.post.title,
           description: widget.post.description,
           imageUrl: widget.post.imageUrl,
-          popularity: widget.post.stat != null ? int.tryParse(widget.post.stat!.replaceAll(RegExp(r'[^0-9]'), '')) ?? 0 : null,
-          isNew: false,
-          isVideo: false,
-          tags: widget.post.tag != null ? [widget.post.tag!] : [],
-          tagColors: widget.post.tag != null && widget.post.tagColor != null ? [widget.post.tagColor!] : [],
+          popularity: widget.post.likeCount, // 使用点赞数作为热度
+          isNew: _isNewPost(widget.post.postedAt),
+          isVideo: widget.post.isVideo,
+          tags: [], // 可以根据需要添加标签
+          tagColors: [],
         ),
       ),
     );
+  }
+
+  // 判断是否为新帖子（24小时内）
+  bool _isNewPost(DateTime postedAt) {
+    final now = DateTime.now();
+    final difference = now.difference(postedAt);
+    return difference.inHours < 24;
   }
 
   Widget _buildActions() {
@@ -1097,7 +1094,7 @@ class _CommentsBottomSheetState extends State<_CommentsBottomSheet> {
               const Text(
                 'Comments',
                 style: TextStyle(
-                  fontSize: 20,
+                  fontSize: 18,
                   fontWeight: FontWeight.bold,
                   color: Color(0xFF122017),
                 ),

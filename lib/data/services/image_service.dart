@@ -5,6 +5,8 @@ import 'package:permission_handler/permission_handler.dart';
 import 'package:get/get.dart';
 import 'package:camera/camera.dart';
 
+// ==================== ImageService 完整代码 ====================
+
 class ImageService {
   static final ImagePicker _picker = ImagePicker();
   static CameraController? _cameraController;
@@ -676,4 +678,801 @@ class CornerBracketPainter extends CustomPainter {
 
   @override
   bool shouldRepaint(CustomPainter oldDelegate) => false;
+}
+
+// ==================== AI识别功能完整代码 ====================
+
+/// AI识别结果模型
+class AIRecognitionResult {
+  final String objectName;
+  final double confidence;
+  final String category;
+  final String? description;
+  
+  AIRecognitionResult({
+    required this.objectName,
+    required this.confidence,
+    required this.category,
+    this.description,
+  });
+}
+
+/// AI识别服务（模拟）
+class AIRecognitionService {
+  /// 模拟AI识别过程
+  static Future<AIRecognitionResult> recognizeImage(File imageFile) async {
+    // 模拟网络请求延迟
+    await Future.delayed(const Duration(seconds: 2));
+    
+    // 模拟识别结果
+    return AIRecognitionResult(
+      objectName: '绿萝',
+      confidence: 0.95,
+      category: '植物',
+      description: '常见的室内观叶植物，具有净化空气的作用',
+    );
+  }
+}
+
+/// 照片添加与AI识别页面
+class PhotoRecognitionPage extends StatefulWidget {
+  const PhotoRecognitionPage({Key? key}) : super(key: key);
+
+  @override
+  State<PhotoRecognitionPage> createState() => _PhotoRecognitionPageState();
+}
+
+class _PhotoRecognitionPageState extends State<PhotoRecognitionPage> {
+  File? _selectedImage;
+  bool _isRecognizing = false;
+  AIRecognitionResult? _recognitionResult;
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: Colors.grey[50],
+      appBar: AppBar(
+        title: const Text('智能识别'),
+        elevation: 0,
+        backgroundColor: Colors.white,
+      ),
+      body: SingleChildScrollView(
+        child: Padding(
+          padding: const EdgeInsets.all(20),
+          child: Column(
+            children: [
+              // 照片展示区域
+              _buildPhotoArea(),
+              
+              const SizedBox(height: 24),
+              
+              // 操作按钮
+              if (_selectedImage == null) _buildActionButtons(),
+              
+              // AI识别动画
+              if (_isRecognizing) _buildRecognitionAnimation(),
+              
+              // 识别结果
+              if (_recognitionResult != null && !_isRecognizing)
+                _buildRecognitionResult(),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  /// 照片展示区域
+  Widget _buildPhotoArea() {
+    return Container(
+      width: double.infinity,
+      height: 400,
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(20),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.05),
+            blurRadius: 10,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: _selectedImage == null
+          ? _buildEmptyState()
+          : _buildImagePreview(),
+    );
+  }
+
+  /// 空状态
+  Widget _buildEmptyState() {
+    return Column(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        Icon(
+          Icons.add_photo_alternate_outlined,
+          size: 80,
+          color: Colors.grey[300],
+        ),
+        const SizedBox(height: 16),
+        Text(
+          '添加照片开始识别',
+          style: TextStyle(
+            fontSize: 16,
+            color: Colors.grey[500],
+            fontWeight: FontWeight.w500,
+          ),
+        ),
+      ],
+    );
+  }
+
+  /// 图片预览
+  Widget _buildImagePreview() {
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(20),
+      child: Stack(
+        fit: StackFit.expand,
+        children: [
+          Image.file(
+            _selectedImage!,
+            fit: BoxFit.cover,
+          ),
+          // 操作按钮浮层
+          Positioned(
+            top: 16,
+            right: 16,
+            child: Row(
+              children: [
+                _buildImageActionButton(
+                  icon: Icons.refresh,
+                  onTap: _retakePhoto,
+                ),
+                const SizedBox(width: 12),
+                _buildImageActionButton(
+                  icon: Icons.close,
+                  onTap: _clearPhoto,
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildImageActionButton({
+    required IconData icon,
+    required VoidCallback onTap,
+  }) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        width: 40,
+        height: 40,
+        decoration: BoxDecoration(
+          color: Colors.black.withOpacity(0.5),
+          shape: BoxShape.circle,
+        ),
+        child: Icon(
+          icon,
+          color: Colors.white,
+          size: 20,
+        ),
+      ),
+    );
+  }
+
+  /// 操作按钮
+  Widget _buildActionButtons() {
+    return Column(
+      children: [
+        _buildMainButton(
+          title: 'AR相机扫描',
+          icon: Icons.camera_alt_rounded,
+          color: Colors.teal,
+          onTap: _openARCamera,
+        ),
+        const SizedBox(height: 16),
+        Row(
+          children: [
+            Expanded(
+              child: _buildSecondaryButton(
+                title: '拍照',
+                icon: Icons.camera,
+                onTap: _takePhoto,
+              ),
+            ),
+            const SizedBox(width: 16),
+            Expanded(
+              child: _buildSecondaryButton(
+                title: '相册',
+                icon: Icons.photo_library_rounded,
+                onTap: _pickFromGallery,
+              ),
+            ),
+          ],
+        ),
+      ],
+    );
+  }
+
+  Widget _buildMainButton({
+    required String title,
+    required IconData icon,
+    required Color color,
+    required VoidCallback onTap,
+  }) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        width: double.infinity,
+        padding: const EdgeInsets.symmetric(vertical: 18),
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            colors: [color, color.withOpacity(0.8)],
+          ),
+          borderRadius: BorderRadius.circular(16),
+          boxShadow: [
+            BoxShadow(
+              color: color.withOpacity(0.3),
+              blurRadius: 12,
+              offset: const Offset(0, 4),
+            ),
+          ],
+        ),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(icon, color: Colors.white, size: 24),
+            const SizedBox(width: 12),
+            Text(
+              title,
+              style: const TextStyle(
+                color: Colors.white,
+                fontSize: 16,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildSecondaryButton({
+    required String title,
+    required IconData icon,
+    required VoidCallback onTap,
+  }) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.symmetric(vertical: 18),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(color: Colors.grey[300]!),
+        ),
+        child: Column(
+          children: [
+            Icon(icon, color: Colors.teal, size: 28),
+            const SizedBox(height: 8),
+            Text(
+              title,
+              style: const TextStyle(
+                fontSize: 14,
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  /// AI识别动画
+  Widget _buildRecognitionAnimation() {
+    return Container(
+      padding: const EdgeInsets.all(32),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(20),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.05),
+            blurRadius: 10,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: Column(
+        children: [
+          // 旋转的AI图标
+          _AIRecognitionAnimation(),
+          
+          const SizedBox(height: 24),
+          
+          const Text(
+            'AI正在识别中...',
+            style: TextStyle(
+              fontSize: 18,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+          
+          const SizedBox(height: 8),
+          
+          Text(
+            '分析图像特征',
+            style: TextStyle(
+              fontSize: 14,
+              color: Colors.grey[600],
+            ),
+          ),
+          
+          const SizedBox(height: 24),
+          
+          // 进度条动画
+          _buildProgressBar(),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildProgressBar() {
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(10),
+      child: TweenAnimationBuilder<double>(
+        duration: const Duration(seconds: 2),
+        tween: Tween(begin: 0.0, end: 1.0),
+        builder: (context, value, child) {
+          return LinearProgressIndicator(
+            value: value,
+            backgroundColor: Colors.grey[200],
+            valueColor: AlwaysStoppedAnimation<Color>(Colors.teal),
+            minHeight: 8,
+          );
+        },
+      ),
+    );
+  }
+
+  /// 识别结果展示
+  Widget _buildRecognitionResult() {
+    final result = _recognitionResult!;
+    
+    return Column(
+      children: [
+        // 成功动画
+        TweenAnimationBuilder<double>(
+          duration: const Duration(milliseconds: 600),
+          tween: Tween(begin: 0.0, end: 1.0),
+          builder: (context, value, child) {
+            return Transform.scale(
+              scale: value,
+              child: Container(
+                width: 80,
+                height: 80,
+                decoration: BoxDecoration(
+                  color: Colors.green,
+                  shape: BoxShape.circle,
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.green.withOpacity(0.3),
+                      blurRadius: 20,
+                      spreadRadius: 5,
+                    ),
+                  ],
+                ),
+                child: const Icon(
+                  Icons.check,
+                  color: Colors.white,
+                  size: 48,
+                ),
+              ),
+            );
+          },
+        ),
+        
+        const SizedBox(height: 24),
+        
+        // 结果卡片
+        Container(
+          width: double.infinity,
+          padding: const EdgeInsets.all(24),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(20),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withOpacity(0.05),
+                blurRadius: 10,
+                offset: const Offset(0, 2),
+              ),
+            ],
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 12,
+                      vertical: 6,
+                    ),
+                    decoration: BoxDecoration(
+                      color: Colors.teal.withOpacity(0.1),
+                      borderRadius: BorderRadius.circular(20),
+                    ),
+                    child: Text(
+                      result.category,
+                      style: TextStyle(
+                        color: Colors.teal[700],
+                        fontSize: 12,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ),
+                  const Spacer(),
+                  Icon(Icons.verified, color: Colors.green, size: 20),
+                  const SizedBox(width: 4),
+                  Text(
+                    '${(result.confidence * 100).toInt()}%',
+                    style: TextStyle(
+                      color: Colors.green[700],
+                      fontSize: 14,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ],
+              ),
+              
+              const SizedBox(height: 16),
+              
+              Text(
+                result.objectName,
+                style: const TextStyle(
+                  fontSize: 24,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              
+              if (result.description != null) ...[
+                const SizedBox(height: 12),
+                Text(
+                  result.description!,
+                  style: TextStyle(
+                    fontSize: 14,
+                    color: Colors.grey[600],
+                    height: 1.5,
+                  ),
+                ),
+              ],
+              
+              const SizedBox(height: 24),
+              
+              Row(
+                children: [
+                  Expanded(
+                    child: OutlinedButton.icon(
+                      onPressed: _retakePhoto,
+                      icon: const Icon(Icons.refresh),
+                      label: const Text('重新识别'),
+                      style: OutlinedButton.styleFrom(
+                        padding: const EdgeInsets.symmetric(vertical: 14),
+                        side: BorderSide(color: Colors.grey[300]!),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: ElevatedButton.icon(
+                      onPressed: () {
+                        // 保存或分享结果
+                        Get.snackbar('成功', '识别结果已保存');
+                      },
+                      icon: const Icon(Icons.check),
+                      label: const Text('确认'),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.teal,
+                        foregroundColor: Colors.white,
+                        padding: const EdgeInsets.symmetric(vertical: 14),
+                        elevation: 0,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+
+  // 操作方法
+  Future<void> _openARCamera() async {
+    final File? image = await ImageService.showHalfScreenCameraScanDialog(context);
+    if (image != null) {
+      _handleImageSelected(image);
+    }
+  }
+
+  Future<void> _takePhoto() async {
+    final File? image = await ImageService.pickImageFromCamera();
+    if (image != null) {
+      _handleImageSelected(image);
+    }
+  }
+
+  Future<void> _pickFromGallery() async {
+    final File? image = await ImageService.pickImageFromGallery();
+    if (image != null) {
+      _handleImageSelected(image);
+    }
+  }
+
+  void _handleImageSelected(File image) {
+    setState(() {
+      _selectedImage = image;
+      _recognitionResult = null;
+    });
+    
+    // 自动开始识别
+    _startRecognition();
+  }
+
+  Future<void> _startRecognition() async {
+    if (_selectedImage == null) return;
+    
+    setState(() {
+      _isRecognizing = true;
+    });
+
+    try {
+      final result = await AIRecognitionService.recognizeImage(_selectedImage!);
+      
+      setState(() {
+        _isRecognizing = false;
+        _recognitionResult = result;
+      });
+    } catch (e) {
+      setState(() {
+        _isRecognizing = false;
+      });
+      Get.snackbar('识别失败', '请重试');
+    }
+  }
+
+  void _retakePhoto() {
+    setState(() {
+      _selectedImage = null;
+      _recognitionResult = null;
+      _isRecognizing = false;
+    });
+  }
+
+  void _clearPhoto() {
+    setState(() {
+      _selectedImage = null;
+      _recognitionResult = null;
+    });
+  }
+}
+
+/// AI识别动画Widget
+class _AIRecognitionAnimation extends StatefulWidget {
+  @override
+  State<_AIRecognitionAnimation> createState() => _AIRecognitionAnimationState();
+}
+
+class _AIRecognitionAnimationState extends State<_AIRecognitionAnimation>
+    with SingleTickerProviderStateMixin {
+  late AnimationController _controller;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = AnimationController(
+      duration: const Duration(seconds: 2),
+      vsync: this,
+    )..repeat();
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      width: 120,
+      height: 120,
+      child: Stack(
+        alignment: Alignment.center,
+        children: [
+          // 外圈旋转光环
+          RotationTransition(
+            turns: _controller,
+            child: Container(
+              width: 120,
+              height: 120,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                border: Border.all(
+                  color: Colors.teal.withOpacity(0.3),
+                  width: 3,
+                ),
+              ),
+              child: CustomPaint(
+                painter: _CircleArcPainter(),
+              ),
+            ),
+          ),
+          
+          // 中圈脉冲效果
+          ScaleTransition(
+            scale: Tween<double>(begin: 0.8, end: 1.0).animate(
+              CurvedAnimation(
+                parent: _controller,
+                curve: Curves.easeInOut,
+              ),
+            ),
+            child: Container(
+              width: 90,
+              height: 90,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color: Colors.teal.withOpacity(0.1),
+              ),
+            ),
+          ),
+          
+          // 中心AI图标
+          Container(
+            width: 60,
+            height: 60,
+            decoration: BoxDecoration(
+              color: Colors.teal,
+              shape: BoxShape.circle,
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.teal.withOpacity(0.3),
+                  blurRadius: 15,
+                  spreadRadius: 2,
+                ),
+              ],
+            ),
+            child: const Icon(
+              Icons.auto_awesome,
+              color: Colors.white,
+              size: 30,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+/// 圆弧绘制器
+class _CircleArcPainter extends CustomPainter {
+  @override
+  void paint(Canvas canvas, Size size) {
+    final paint = Paint()
+      ..color = Colors.teal
+      ..strokeWidth = 3
+      ..style = PaintingStyle.stroke
+      ..strokeCap = StrokeCap.round;
+
+    final rect = Rect.fromLTWH(0, 0, size.width, size.height);
+    
+    // 绘制多个圆弧
+    canvas.drawArc(rect, 0, 1.5, false, paint);
+    canvas.drawArc(rect, 3.14, 1.5, false, paint);
+  }
+
+  @override
+  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
+}
+
+// ==================== 使用示例 ====================
+
+/// 主应用入口示例
+class MyApp extends StatelessWidget {
+  const MyApp({Key? key}) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return GetMaterialApp(
+      title: 'AI识别应用',
+      theme: ThemeData(
+        primarySwatch: Colors.teal,
+        scaffoldBackgroundColor: Colors.grey[50],
+      ),
+      home: const HomePage(),
+    );
+  }
+}
+
+/// 主页示例
+class HomePage extends StatelessWidget {
+  const HomePage({Key? key}) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('AI植物识别'),
+        centerTitle: true,
+      ),
+      body: Center(
+        child: Padding(
+          padding: const EdgeInsets.all(20),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(
+                Icons.eco,
+                size: 100,
+                color: Colors.teal,
+              ),
+              const SizedBox(height: 20),
+              const Text(
+                '智能植物识别',
+                style: TextStyle(
+                  fontSize: 28,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              const SizedBox(height: 10),
+              Text(
+                '拍照或上传图片，AI帮你识别植物',
+                style: TextStyle(
+                  fontSize: 16,
+                  color: Colors.grey[600],
+                ),
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: 40),
+              ElevatedButton(
+                onPressed: () {
+                  Get.to(() => const PhotoRecognitionPage());
+                },
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.teal,
+                  foregroundColor: Colors.white,
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 40,
+                    vertical: 16,
+                  ),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(30),
+                  ),
+                  elevation: 5,
+                ),
+                child: const Text(
+                  '开始识别',
+                  style: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
 }

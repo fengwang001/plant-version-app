@@ -257,7 +257,7 @@ class _PlantDetailPageState extends State<PlantDetailPage> with TickerProviderSt
           _buildTopButtons(),
         ],
       ),
-      bottomNavigationBar: _buildBottomBar(),
+      // bottomNavigationBar: _buildBottomBar(),
     );
   }
 
@@ -519,7 +519,7 @@ class _PlantDetailPageState extends State<PlantDetailPage> with TickerProviderSt
                           child: Text(
                             widget.name,
                             style: const TextStyle(
-                              fontSize: 28,
+                              fontSize: 16,
                               fontWeight: FontWeight.bold,
                               color: Color(0xFF122017),
                             ),
@@ -558,8 +558,8 @@ class _PlantDetailPageState extends State<PlantDetailPage> with TickerProviderSt
                         color: Colors.grey[600],
                         height: 1.4,
                       ),
-                      maxLines: 3,
-                      overflow: TextOverflow.ellipsis,
+                      // maxLines: 3,
+                      // overflow: TextOverflow.ellipsis,
                     ),
                   ],
                 ),
@@ -642,7 +642,7 @@ class _PlantDetailPageState extends State<PlantDetailPage> with TickerProviderSt
           const Text(
             'Care Guide',
             style: TextStyle(
-              fontSize: 20,
+              fontSize: 16,
               fontWeight: FontWeight.bold,
               color: Color(0xFF122017),
             ),
@@ -743,7 +743,7 @@ class _PlantDetailPageState extends State<PlantDetailPage> with TickerProviderSt
           const Text(
             'About This Plant',
             style: TextStyle(
-              fontSize: 20,
+              fontSize: 16,
               fontWeight: FontWeight.bold,
               color: Color(0xFF122017),
             ),
@@ -777,7 +777,7 @@ class _PlantDetailPageState extends State<PlantDetailPage> with TickerProviderSt
                 child: Text(
                   'Comments (${_comments.length})',
                   style: const TextStyle(
-                    fontSize: 20,
+                    fontSize: 16,
                     fontWeight: FontWeight.bold,
                     color: Color(0xFF122017),
                   ),

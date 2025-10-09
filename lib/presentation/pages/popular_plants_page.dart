@@ -434,7 +434,7 @@ class _PopularPlantsPageState extends State<PopularPlantsPage> with TickerProvid
         const Text(
           'Sort by',
           style: TextStyle(
-            fontSize: 17,
+            fontSize: 16,
             fontWeight: FontWeight.bold,
             color: Color(0xFF122017),
           ),
@@ -886,7 +886,7 @@ class _ExpandableSectionState extends State<_ExpandableSection> {
               Text(
                 widget.title,
                 style: const TextStyle(
-                  fontSize: 17,
+                  fontSize: 16,
                   fontWeight: FontWeight.bold,
                   color: Color(0xFF122017),
                 ),
