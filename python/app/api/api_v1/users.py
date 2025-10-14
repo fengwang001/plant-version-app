@@ -3,10 +3,10 @@ from typing import Any
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from ....core import deps
-from ....models.user import User
-from ....schemas.user import UserResponse, UserUpdate, UserStats, UserProfile
-from ....services.user_service import UserService
+from ...core import deps
+from ...models.user import User
+from ...schemas.user import UserResponse, UserUpdate, UserStats, UserProfile
+from ...services.user_service import UserService
 
 router = APIRouter()
 

@@ -3,15 +3,15 @@ from typing import Any, Optional
 from fastapi import APIRouter, Depends, HTTPException, status, Query, File, UploadFile
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from ....core import deps
-from ....models.user import User
-from ....schemas.media import (
+from ...core import deps
+from ...models.user import User
+from ...schemas.media import (
     MediaPresignRequest,
     MediaPresignResponse,
     MediaConfirmRequest,
     MediaFileResponse
 )
-from ....services.media_service import MediaService
+from ...services.media_service import MediaService
 
 router = APIRouter()
 

@@ -5,9 +5,9 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordRequestForm
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from ....core import deps, security
-from ....core.config import settings
-from ....schemas.auth import (
+from ...core import deps, security
+from ...core.config import settings
+from ...schemas.auth import (
     Token, 
     UserLogin, 
     UserRegister, 
@@ -16,8 +16,8 @@ from ....schemas.auth import (
     GuestLogin,
     RefreshToken
 )
-from ....schemas.user import UserResponse
-from ....services.auth_service import AuthService
+from ...schemas.user import UserResponse
+from ...services.auth_service import AuthService
 
 router = APIRouter()
 
@@ -155,6 +155,10 @@ async def login_as_guest(
         device_id=guest_data.device_id,
         device_type=guest_data.device_type
     )
+
+    print(111111111111111111111111)
+
+    print(user)
     
     access_token_expires = timedelta(minutes=settings.access_token_expire_minutes)
     refresh_token_expires = timedelta(days=settings.refresh_token_expire_days)

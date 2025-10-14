@@ -1,6 +1,6 @@
 """API v1 主路由"""
 from fastapi import APIRouter
-from .endpoints import auth, plants, media, users, subscriptions, posts
+from . import auth, plants, media, users, subscriptions, posts
 
 api_router = APIRouter()
 

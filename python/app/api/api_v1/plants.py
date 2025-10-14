@@ -3,16 +3,16 @@ from typing import Any, List, Optional
 from fastapi import APIRouter, Depends, HTTPException, status, File, UploadFile, Query
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from ....core import deps
-from ....models.user import User
-from ....schemas.plant import (
+from ...core import deps
+from ...models.user import User
+from ...schemas.plant import (
     PlantResponse,
     PlantIdentificationResponse,
     PlantIdentificationCreate,
     PlantSearchResponse
 )
-from ....services.plant_service import PlantService
-from ....services.plant_identification_service import PlantIdentificationService
+from ...services.plant_service import PlantService
+from ...services.plant_identification_service import PlantIdentificationService
 
 router = APIRouter()
 

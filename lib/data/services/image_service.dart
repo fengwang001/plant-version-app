@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'dart:async'; 
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:permission_handler/permission_handler.dart';
@@ -54,8 +55,8 @@ class ImageService {
       return false;
     }
   }
-
-  /// 释放相机资源
+  
+   /// 释放相机资源
   static Future<void> _disposeCamera() async {
     if (_cameraController != null) {
       await _cameraController!.dispose();
@@ -72,31 +73,43 @@ class ImageService {
 
   /// 请求相册权限
   static Future<bool> _requestPhotosPermission() async {
-    // 根据平台请求不同的权限
-    if (Platform.isIOS) {
-      final PermissionStatus status = await Permission.photos.request();
-      return status == PermissionStatus.granted || status == PermissionStatus.limited;
-    } else if (Platform.isAndroid) {
-      // Android 13+ 需要请求特定权限
-      if (await _getAndroidVersion() >= 33) {
+    try {
+      // 根据平台请求不同的权限
+      if (Platform.isIOS) {
         final PermissionStatus status = await Permission.photos.request();
         return status == PermissionStatus.granted || status == PermissionStatus.limited;
-      } else {
-        // Android 12及以下使用storage权限
-        final PermissionStatus status = await Permission.storage.request();
-        return status == PermissionStatus.granted;
+      } else if (Platform.isAndroid) {
+        // 获取真实的Android版本
+        final androidVersion = await _getAndroidVersion();
+        print('📱 Android SDK版本: $androidVersion');
+        
+        // Android 13+ (SDK 33+) 需要请求photos权限
+        if (androidVersion >= 33) {
+          final PermissionStatus status = await Permission.photos.request();
+          return status == PermissionStatus.granted || status == PermissionStatus.limited;
+        } else {
+          // Android 12及以下使用storage权限
+          final PermissionStatus status = await Permission.storage.request();
+          return status == PermissionStatus.granted;
+        }
       }
+      return false;
+    } catch (e) {
+      print('❌ 请求权限错误: $e');
+      return false;
     }
-    return false;
   }
-
+  
   /// 获取Android版本
   static Future<int> _getAndroidVersion() async {
     if (!Platform.isAndroid) return 0;
     try {
-      // 这里简化处理，实际项目中可以用device_info_plus获取
-      return 33; // 假设是Android 13+
+      final deviceInfo = DeviceInfoPlugin();
+      final androidInfo = await deviceInfo.androidInfo;
+      print('📱 获取到的Android版本: SDK ${androidInfo.version.sdkInt}');
+      return androidInfo.version.sdkInt;
     } catch (e) {
+      print('❌ 获取Android版本失败: $e');
       return 30;
     }
   }
@@ -126,19 +139,27 @@ class ImageService {
       return null;
     }
   }
-
+  
   /// 从相册选择
   static Future<File?> pickImageFromGallery() async {
     try {
+      print('🔍 === pickImageFromGallery 开始 ===');
+      
+      // 获取Android版本
+      final androidVersion = await _getAndroidVersion();
+      print('📱 当前设备Android版本: SDK $androidVersion');
+      
       // 先检查权限
       bool hasPermission = await _checkPhotosPermission();
+      print('✅ 权限检查结果: $hasPermission');
       
       if (!hasPermission) {
-        // 如果没有权限，请求权限
+        print('⚠️ 没有权限，开始请求...');
         hasPermission = await _requestPhotosPermission();
+        print('📝 请求权限结果: $hasPermission');
         
         if (!hasPermission) {
-          // 权限被拒绝，显示提示并引导用户去设置
+          print('❌ 权限被拒绝');
           Get.snackbar(
             '权限不足', 
             '需要相册权限才能选择照片，请在设置中开启',
@@ -155,6 +176,7 @@ class ImageService {
         }
       }
 
+      print('🎉 权限已获取，打开相册选择器...');
       final XFile? image = await _picker.pickImage(
         source: ImageSource.gallery,
         maxWidth: 1920,
@@ -163,35 +185,51 @@ class ImageService {
       );
 
       if (image != null) {
+        print('✅ 选择成功: ${image.path}');
+        print('🔍 === pickImageFromGallery 结束 (成功) ===');
         return File(image.path);
       }
+      print('❌ 用户取消选择');
+      print('🔍 === pickImageFromGallery 结束 (取消) ===');
       return null;
-    } catch (e) {
-      print('选择照片错误详情: $e');
+    } catch (e, stackTrace) {
+      print('❌ 选择照片错误详情: $e');
+      print('❌ 堆栈跟踪: $stackTrace');
       Get.snackbar(
         '选择失败', 
-        '无法打开相册，请检查应用权限设置',
+        '无法打开相册: $e',
         duration: Duration(seconds: 3),
       );
+      print('🔍 === pickImageFromGallery 结束 (异常) ===');
       return null;
     }
   }
-
+  
   /// 检查相册权限
   static Future<bool> _checkPhotosPermission() async {
-    if (Platform.isIOS) {
-      final status = await Permission.photos.status;
-      return status == PermissionStatus.granted || status == PermissionStatus.limited;
-    } else if (Platform.isAndroid) {
-      if (await _getAndroidVersion() >= 33) {
+    try {
+      if (Platform.isIOS) {
         final status = await Permission.photos.status;
         return status == PermissionStatus.granted || status == PermissionStatus.limited;
-      } else {
-        final status = await Permission.storage.status;
-        return status == PermissionStatus.granted;
+      } else if (Platform.isAndroid) {
+        final androidVersion = await _getAndroidVersion();
+        print('📱 检查权限 - Android SDK版本: $androidVersion');
+        
+        if (androidVersion >= 33) {
+          final status = await Permission.photos.status;
+          print('📂 Photos权限状态: $status');
+          return status == PermissionStatus.granted || status == PermissionStatus.limited;
+        } else {
+          final status = await Permission.storage.status;
+          print('📂 Storage权限状态: $status');
+          return status == PermissionStatus.granted;
+        }
       }
+      return false;
+    } catch (e) {
+      print('❌ 检查权限错误: $e');
+      return false;
     }
-    return false;
   }
 
   /// 显示图片来源选择对话框
@@ -259,47 +297,78 @@ class ImageService {
     return selectedImage;
   }
 
-  /// AR相机扫描界面 (完全按照图片UI实现)
-  static Future<File?> showHalfScreenCameraScanDialog(BuildContext context) async {
-    File? selectedImage;
-    
-    print('🎬 打开 AR 相机扫描对话框');
-    
-    await Get.bottomSheet(
-      _ARCameraScanWidget(
-        onImageCaptured: (File? image) {
-          print('📸 拍照完成，图片: ${image?.path}');
-          selectedImage = image;
-          Get.back();
-        },
-        onGallerySelected: () async {
-          print('🖼️ onGallerySelected 回调被触发！');
-          print('🔙 关闭相机对话框');
-          Get.back();
-          
-          print('📂 准备打开相册...');
-          selectedImage = await pickImageFromGallery();
-          
-          if (selectedImage != null) {
-            print('✅ 从相册选择成功: ${selectedImage!.path}');
-          } else {
-            print('❌ 用户取消选择或选择失败');
-          }
-        },
-        onClose: () {
-          print('❌ 用户关闭相机');
-          Get.back();
-        },
-      ),
-      isScrollControlled: true,
-      isDismissible: true,
-      enableDrag: false,
-    );
-    
-    print('↩️ 相机对话框关闭，返回图片: ${selectedImage?.path ?? "null"}');
-    return selectedImage;
-  }
+  
 
+  /// AR相机扫描界面 (彻底修复异步返回问题)
+static Future<File?> showHalfScreenCameraScanDialog(BuildContext context) async {
+  final Completer<File?> completer = Completer<File?>();
+  bool shouldCompleteThen = true; // 控制 .then() 是否应该完成 completer
+  
+  print('🎬 === showHalfScreenCameraScanDialog 开始 ===');
+  
+  Get.bottomSheet(
+    _ARCameraScanWidget(
+      onImageCaptured: (File? image) {
+        print('📸 拍照回调触发，图片: ${image?.path}');
+        if (!completer.isCompleted) {
+          shouldCompleteThen = false; // 防止 .then() 回调干扰
+          completer.complete(image);
+          Get.back();
+        }
+      },
+      onGallerySelected: () async {
+        print('🖼️ === 相册按钮被点击 ===');
+        
+        // 标记：不要让 .then() 回调完成 completer
+        shouldCompleteThen = false;
+        
+        // 先关闭相机对话框
+        print('🔙 关闭相机对话框');
+        Get.back();
+        
+        // 等待对话框关闭动画完成
+        print('⏳ 等待400ms让对话框关闭...');
+        await Future.delayed(const Duration(milliseconds: 400));
+        
+        print('📂 调用 pickImageFromGallery');
+        final selectedImage = await pickImageFromGallery();
+        
+        print('📷 pickImageFromGallery 返回结果: ${selectedImage?.path ?? "null"}');
+        
+        if (!completer.isCompleted) {
+          print('✅ 完成 completer，图片: ${selectedImage?.path ?? "null"}');
+          completer.complete(selectedImage);
+        } else {
+          print('⚠️ completer 已经完成，忽略此结果');
+        }
+      },
+      onClose: () {
+        print('❌ 关闭按钮被点击');
+        if (!completer.isCompleted) {
+          shouldCompleteThen = false; // 防止 .then() 回调干扰
+          completer.complete(null);
+          Get.back();
+        }
+      },
+    ),
+    isScrollControlled: true,
+    isDismissible: true,
+    enableDrag: false,
+  ).then((_) {
+    print('🔚 BottomSheet.then 回调触发, shouldCompleteThen=$shouldCompleteThen');
+    // 只有在用户没有通过按钮操作时，才在这里完成
+    if (shouldCompleteThen && !completer.isCompleted) {
+      print('⚠️ 用户通过其他方式关闭了对话框（如点击外部），返回 null');
+      completer.complete(null);
+    }
+  });
+  
+  print('⏳ 等待 completer.future...');
+  final result = await completer.future;
+  print('✅ completer.future 完成，结果: ${result?.path ?? "null"}');
+  print('🎬 === showHalfScreenCameraScanDialog 结束 ===');
+  return result;
+}
   static Widget _buildSourceOption({
     required IconData icon,
     required String title,
@@ -335,6 +404,8 @@ class ImageService {
     );
   }
 }
+
+
 
 /// AR相机扫描Widget - 完全按照图片UI实现
 class _ARCameraScanWidget extends StatefulWidget {
