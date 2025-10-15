@@ -1,6 +1,7 @@
 import 'dart:io';
 import 'package:dio/dio.dart';
-import 'package:get/get.dart';
+import 'package:get/get.dart' as getx;
+import 'package:image_picker/image_picker.dart';
 import '../models/plant_identification.dart';
 import '../models/plant.dart';
 import 'token_storage_service.dart';
@@ -64,7 +65,7 @@ class ApiService {
         return data.map((item) => PlantIdentification.fromApiJson(item)).toList();
       } else if (response.statusCode == 401 || response.statusCode == 403) {
         print('❌ 认证失败，状态码: ${response.statusCode}');
-        if (Get.isRegistered<AppNavigationController>()) {
+        if (getx.Get.isRegistered<AppNavigationController>()) {
           AppNavigationController.instance.navigateToLogin();
         }
         throw Exception('认证失败，请重新登录');
@@ -81,7 +82,7 @@ class ApiService {
          
           // 使用新的导航方式，不使用路由跳转
           try {
-            if (Get.isRegistered<AppNavigationController>()) {
+            if (getx.Get.isRegistered<AppNavigationController>()) {
               AppNavigationController.instance.navigateToLogin();
             }
           } catch (e) {
@@ -114,8 +115,18 @@ class ApiService {
       }
       
       // 创建FormData
-      final formData = {};
-      
+      // 创建 FormData
+      FormData formData = FormData.fromMap({
+        // 文件字段 - 对应后端的 file 参数
+        'file': await MultipartFile.fromFile(
+          imageFile.path,
+          filename: imageFile.path.split('/').last,
+        ),
+        // 可选参数
+        if (latitude != null) 'latitude': latitude,
+        if (longitude != null) 'longitude': longitude,
+        if (locationName != null) 'location_name': locationName,
+      });
       print('🌱 发送植物识别请求...');
       final response = await _dio.post('/api/v1/plants/identify', data: formData);
       
@@ -126,7 +137,7 @@ class ApiService {
         print('✅ 植物识别成功: ${data['common_name']}');
         return PlantIdentification.fromApiJson(data);
       } else if (response.statusCode == 401 || response.statusCode == 403) {
-        if (Get.isRegistered<AppNavigationController>()) {
+        if (getx.Get.isRegistered<AppNavigationController>()) {
           AppNavigationController.instance.navigateToLogin();
         }
         throw Exception('认证失败，请重新登录');
@@ -165,7 +176,7 @@ class ApiService {
       if (response.statusCode == 200) {
         return response.data;
       } else if (response.statusCode == 401 || response.statusCode == 403) {
-        if (Get.isRegistered<AppNavigationController>()) {
+        if (getx.Get.isRegistered<AppNavigationController>()) {
           AppNavigationController.instance.navigateToLogin();
         }
         throw Exception('认证失败，请重新登录');
@@ -208,7 +219,7 @@ class ApiService {
         final data = response.data;
         return List<Map<String, dynamic>>.from(data['items'] ?? []);
       } else if (response.statusCode == 401 || response.statusCode == 403) {
-        if (Get.isRegistered<AppNavigationController>()) {
+        if (getx.Get.isRegistered<AppNavigationController>()) {
           AppNavigationController.instance.navigateToLogin();
         }
         throw Exception('认证失败，请重新登录');
@@ -253,7 +264,7 @@ class ApiService {
         print('✅ 获取到 ${data.length} 个推荐植物');
         return data.map((item) => Plant.fromApiJson(item)).toList();
       } else if (response.statusCode == 401 || response.statusCode == 403) {
-        if (Get.isRegistered<AppNavigationController>()) {
+        if (getx.Get.isRegistered<AppNavigationController>()) {
           AppNavigationController.instance.navigateToLogin();
         }
         throw Exception('认证失败，请重新登录');
@@ -295,7 +306,7 @@ class ApiService {
       if (response.statusCode == 200) {
         return List<Map<String, dynamic>>.from(response.data);
       } else if (response.statusCode == 401 || response.statusCode == 403) {
-        if (Get.isRegistered<AppNavigationController>()) {
+        if (getx.Get.isRegistered<AppNavigationController>()) {
           AppNavigationController.instance.navigateToLogin();
         }
         throw Exception('认证失败，请重新登录');
@@ -337,7 +348,7 @@ class ApiService {
       if (response.statusCode == 200) {
         return response.data;
       } else if (response.statusCode == 401 || response.statusCode == 403) {
-        if (Get.isRegistered<AppNavigationController>()) {
+        if (getx.Get.isRegistered<AppNavigationController>()) {
           AppNavigationController.instance.navigateToLogin();
         }
         throw Exception('认证失败，请重新登录');

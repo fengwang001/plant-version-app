@@ -34,6 +34,8 @@ async def identify_plant(
     - **longitude**: 拍摄位置经度（可选）
     - **location_name**: 位置名称（可选）
     """
+
+    print(f"Received file: {file.filename}, content_type: {file.content_type}, size: {file.size if hasattr(file, 'size') else 'unknown'}")
     # 验证文件类型
     if not file.content_type or not file.content_type.startswith("image/"):
         raise HTTPException(

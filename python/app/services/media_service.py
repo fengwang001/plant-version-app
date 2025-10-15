@@ -1,6 +1,8 @@
 """媒体文件服务"""
 import os
 import uuid
+import requests
+import json
 from typing import Dict, Any, Optional
 from fastapi import UploadFile
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -89,15 +91,27 @@ class MediaService(BaseService[MediaFile]):
         await self.db.commit()
         await self.db.refresh(media_file)
         
-        # 生成预签名URL（这里是模拟，实际应该调用S3或其他云存储服务）
+        # 生成预签名URL（调用S3）
         presign_url = f"https://example.com/upload/{file_id}"
+        url = " https://dbt96guful.execute-api.ap-southeast-2.amazonaws.com/fovus-api/create-resigned-url"
+        headers = {"Content-Type": "application/json"}
+        payload = {"fileName": unique_filename}
+
+        response = requests.put(url, headers=headers, data=json.dumps(payload))
+        #检查响应状态
+        response.raise_for_status
+
+        data = response.json()
+        print(response.status_code)
+        print(data)
         
         return MediaPresignResponse(
             file_id=file_id,
-            presign_url=presign_url,
+            presign_url=data,
             file_path=file_path,
             expires_in=3600  # 1小时
         )
+
     
     async def confirm_upload(
         self,
@@ -250,6 +264,67 @@ class MediaService(BaseService[MediaFile]):
         await self.db.refresh(media_file)
         
         return MediaFileResponse.model_validate(media_file)
+    
+
+    async def upload_file_to_s3(self,
+        file: UploadFile,
+        user_id: str,
+        file_purpose: str) -> MediaFileResponse:
+        """
+        使用预签名URL上传文件到S3
+        
+        Args:
+            file_path: 本地文件路径
+            presigned_url: S3预签名URL
+            content_type: 文件的MIME类型（可选，如 'image/jpeg', 'application/pdf'）
+            
+        Returns:
+            bool: 上传是否成功
+        """
+        try:
+            # 读取文件内容
+            content = await file.read()
+            file_size = len(content)  # 获取文件大小
+            await file.seek(0)  # 重置文件指针
+            # 生成预签名URL
+            presigned_resonse = await self.generate_presign_url(
+                user_id=user_id,
+                filename=file.filename,
+                content_type=file.content_type,
+                file_size=file_size,
+                file_purpose=file_purpose
+            )   
+            
+            # 设置请求头
+            headers = {
+                'Content-Type': file.content_type
+            }
+       
+            
+            # 上传文件到S3
+            response = requests.put(
+                presigned_resonse.presign_url,
+                data=file,
+                headers=headers
+            )
+            
+            # 检查上传是否成功
+            if response.ok:
+                print('File uploaded successfully')
+                # 在Python中没有alert，使用print或者可以使用GUI库
+                self.confirm_upload(
+                    file_id=presigned_resonse.file_id, 
+                    user_id=user_id, 
+                    file_url=presigned_resonse.file_url
+                )
+                return True
+            else:
+                print(f'File upload failed: {response.status_code}')
+                return False
+                
+        except Exception as error:
+            print(f'Error uploading file: {error}')
+            return False
     
     def _get_file_category(self, content_type: str) -> str:
         """根据内容类型获取文件分类"""

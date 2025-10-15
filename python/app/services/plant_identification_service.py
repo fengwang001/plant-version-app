@@ -37,7 +37,7 @@ class PlantIdentificationService(BaseService[PlantIdentification]):
         """执行植物识别"""
         
         # 1. 上传图片到存储服务
-        media_file = await self.media_service.upload_file_direct(
+        media_file = await self.media_service.upload_file_to_s3(
             file=image_file,
             user_id=user_id,
             file_purpose="plant_image"
