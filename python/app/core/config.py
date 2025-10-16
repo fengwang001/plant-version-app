@@ -39,7 +39,7 @@ class Settings(BaseSettings):
     
     # Plant.id API 配置
     plant_id_api_key: Optional[str] = Field(default="vMULjQwS7sm5KpAffcP6ELsTn3D2jLjqNyNzHDnw734sVf2tMG", alias="PLANT_ID_API_KEY")
-    plant_id_api_url: str = Field(default="https://api.plant.id/v3", alias="PLANT_ID_API_URL")
+    plant_id_api_url: str = Field(default="https://plant.id/api/v3", alias="PLANT_ID_API_URL")
     
     # Replicate API 配置
     replicate_api_token: Optional[str] = Field(default=None, alias="REPLICATE_API_TOKEN")

@@ -1,6 +1,7 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'dart:async';
 import '../../data/models/plant_identification.dart';
 import '../../data/models/plant.dart';
 import '../../data/services/recent_identification_service.dart';
@@ -27,22 +28,69 @@ class HomeController extends GetxController {
     _loadDataSequentially();
   }
 
-  /// 按顺序加载数据，避免并发请求问题
+  /// 按顺序加载数据，带重试机制
   Future<void> _loadDataSequentially() async {
     try {
       print('🔄 开始按顺序加载数据...');
       
-      // 先加载识别历史
+      // 先加载识别历史（带重试）
       print('📡 从API获取最近识别...');
-      await loadRecentHistory();
+      await _loadRecentHistoryWithRetry(maxRetries: 3);
       
-      // 再加载推荐植物
+      // 再加载推荐植物（带重试）
       print('🌐 从API获取推荐植物...');
-      await loadFeaturedPlants();
+      await _loadFeaturedPlantsWithRetry(maxRetries: 3);
       
       print('✅ 所有数据加载完成');
     } catch (e) {
       print('❌ 数据加载过程中出现错误: $e');
+    }
+  }
+  /// 带重试的加载最近识别历史
+  Future<void> _loadRecentHistoryWithRetry({int maxRetries = 3}) async {
+    int retryCount = 0;
+    
+    while (retryCount < maxRetries) {
+      try {
+        await loadRecentHistory(limit: 5);
+        return; // 成功则返回
+      } catch (e) {
+        retryCount++;
+        print('⚠️ 加载失败，尝试重试 ($retryCount/$maxRetries): $e');
+        
+        if (retryCount < maxRetries) {
+          // 等待一段时间后重试（指数退避）
+          await Future.delayed(Duration(milliseconds: 500 * retryCount));
+        } else {
+          // 最后一次重试仍失败
+          print('❌ 识别历史加载失败，已重试 $maxRetries 次');
+          rethrow;
+        }
+      }
+    }
+  }
+
+  /// 带重试的加载推荐植物
+  Future<void> _loadFeaturedPlantsWithRetry({int maxRetries = 3}) async {
+    int retryCount = 0;
+    
+    while (retryCount < maxRetries) {
+      try {
+        await loadFeaturedPlants();
+        return; // 成功则返回
+      } catch (e) {
+        retryCount++;
+        print('⚠️ 加载失败，尝试重试 ($retryCount/$maxRetries): $e');
+        
+        if (retryCount < maxRetries) {
+          // 等待一段时间后重试（指数退避）
+          await Future.delayed(Duration(milliseconds: 500 * retryCount));
+        } else {
+          // 最后一次重试仍失败
+          print('❌ 推荐植物加载失败，已重试 $maxRetries 次');
+          rethrow;
+        }
+      }
     }
   }
 
@@ -329,26 +377,32 @@ class HomeController extends GetxController {
     }
   }
 
-  /// 加载最近的识别历史
-  Future<void> loadRecentHistory() async {
+ /// 改进的加载最近识别历史
+  Future<void> loadRecentHistory({int limit = 5}) async {
+    // 防止并发：如果已在加载中则直接返回
     if (isLoadingHistory.value) {
-      print('⚠️ 识别历史正在加载中，跳过重复请求');
+      print('⚠️ 识别历史正在加载中，跳过本次请求');
       return;
     }
     
     try {
       isLoadingHistory.value = true;
-      print('📡 开始获取最近识别历史...');
+      print('📡 开始获取最近识别历史（limit=$limit）...');
       
       // 添加超时控制
       final List<PlantIdentification> history = await RecentIdentificationService
-          .getRecentIdentifications(limit: 5)
+          .getRecentIdentifications(limit: limit)
           .timeout(
             const Duration(seconds: 15),
             onTimeout: () {
-              throw Exception('请求超时，请检查网络连接');
+              throw TimeoutException('识别历史请求超时（15秒）');
             },
           );
+      
+      // 验证返回数据
+      if (history == null) {
+        throw Exception('从服务返回空数据');
+      }
       
       recentHistory.value = history;
       print('✅ 从API获取到 ${history.length} 条识别记录');
@@ -357,19 +411,31 @@ class HomeController extends GetxController {
         print('📋 最新记录: ${history.first.commonName}');
       }
       
+    } on TimeoutException catch (e) {
+      print('⏱️ 超时错误: $e');
+      _handleLoadError(e, '加载识别历史超时');
+      rethrow;
+      
+    } on SocketException catch (e) {
+      print('📡 网络错误: $e');
+      _handleLoadError(e, '网络连接失败');
+      rethrow;
+      
     } catch (e) {
       print('❌ 加载识别历史失败: $e');
       _handleLoadError(e, '加载识别历史失败');
+      rethrow;
       
     } finally {
       isLoadingHistory.value = false;
     }
   }
-
-  /// 加载推荐植物
+  
+  /// 改进的加载推荐植物
   Future<void> loadFeaturedPlants() async {
+    // 防止并发：如果已在加载中则直接返回
     if (isLoadingFeatured.value) {
-      print('⚠️ 推荐植物正在加载中，跳过重复请求');
+      print('⚠️ 推荐植物正在加载中，跳过本次请求');
       return;
     }
     
@@ -378,12 +444,18 @@ class HomeController extends GetxController {
       print('🌐 开始获取推荐植物...');
       
       // 添加超时控制
-      final List<Plant> plants = await ApiService.getFeaturedPlants(limit: 3).timeout(
-        const Duration(seconds: 15),
-        onTimeout: () {
-          throw Exception('请求超时，请检查网络连接');
-        },
-      );
+      final List<Plant> plants = await ApiService.getFeaturedPlants(limit: 3)
+          .timeout(
+            const Duration(seconds: 15),
+            onTimeout: () {
+              throw TimeoutException('推荐植物请求超时（15秒）');
+            },
+          );
+      
+      // 验证返回数据
+      if (plants == null) {
+        throw Exception('从服务返回空数据');
+      }
       
       featuredPlants.value = plants;
       print('✅ 获取到 ${plants.length} 个推荐植物');
@@ -392,50 +464,70 @@ class HomeController extends GetxController {
         print('🌟 推荐植物列表: ${plants.map((p) => p.commonName).join(', ')}');
       }
       
+    } on TimeoutException catch (e) {
+      print('⏱️ 超时错误: $e');
+      _handleLoadError(e, '加载推荐植物超时');
+      rethrow;
+      
+    } on SocketException catch (e) {
+      print('📡 网络错误: $e');
+      _handleLoadError(e, '网络连接失败');
+      rethrow;
+      
     } catch (e) {
       print('❌ 加载推荐植物失败: $e');
       _handleLoadError(e, '加载推荐植物失败');
+      rethrow;
       
     } finally {
       isLoadingFeatured.value = false;
     }
   }
-
-  /// 统一错误处理
+ 
+  /// 改进的统一错误处理
   void _handleLoadError(dynamic error, String context) {
     print('⚠️ 处理加载错误: $context');
     print('⚠️ 错误详情: $error');
     
+    String errorMessage = '加载失败，请重试';
+    
     if (error.toString().contains('认证失败') || 
         error.toString().contains('401') || 
         error.toString().contains('403')) {
-      print('🔒 认证失败，但不执行路由跳转（由 FitnessAppHomeScreen 处理）');
-      Get.snackbar(
-        '认证失败',
-        '请重新登录',
-        snackPosition: SnackPosition.BOTTOM,
-        backgroundColor: Colors.orange.withOpacity(0.8),
-        colorText: Colors.white,
-      );
+      errorMessage = '认证已过期，请重新登录';
       
     } else if (error.toString().contains('超时') || 
-               error.toString().contains('timeout')) {
+              error.toString().contains('SocketException') ||
+              error.toString().contains('Network')) {
+      errorMessage = '网络连接失败，请检查网络';
+      
+    } else if (error.toString().contains('NoSuchMethodError')) {
+      errorMessage = '数据格式错误，请稍后重试';
+    }
+    
+    // 只在用户界面可见时显示错误
+    if (Get.context != null) {
       Get.snackbar(
-        '网络超时',
-        '请检查网络连接后重试',
+        '提示',
+        errorMessage,
         snackPosition: SnackPosition.BOTTOM,
         backgroundColor: Colors.orange.withOpacity(0.8),
         colorText: Colors.white,
+        duration: const Duration(seconds: 3),
       );
     }
-    // 其他错误不显示提示，避免过多打扰用户
   }
 
-  /// 刷新数据
+  /// 手动刷新数据方法（可用于 UI 的下拉刷新）
   Future<void> refreshData() async {
-    print('🔄 刷新所有数据');
-    await loadRecentHistory();
-    await loadFeaturedPlants();
+    print('🔄 手动刷新所有数据');
+    try {
+      await _loadRecentHistoryWithRetry(maxRetries: 2);
+      await _loadFeaturedPlantsWithRetry(maxRetries: 2);
+      print('✅ 刷新完成');
+    } catch (e) {
+      print('❌ 刷新数据失败: $e');
+    }
   }
 
   /// 查看识别详情

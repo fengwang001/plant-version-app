@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'dart:convert';
 import 'package:cached_network_image/cached_network_image.dart';
 import '../../core/theme/app_theme.dart';
 import '../../data/models/plant_identification.dart';
@@ -288,6 +289,8 @@ class _IdentificationHistoryPageState extends State<IdentificationHistoryPage> {
 
   /// 构建历史卡片
   Widget _buildHistoryCard(PlantIdentification identification) {
+    print('Building card for identification ID: ${jsonEncode(identification)}');
+
     return Container(
       decoration: BoxDecoration(
         color: Colors.white,
@@ -647,6 +650,7 @@ class _IdentificationHistoryPageState extends State<IdentificationHistoryPage> {
 
   /// 格式化日期
   String _formatDate(DateTime? dateTime) {
+    print('Formatting date----****: $dateTime');
     if (dateTime == null) return '';
     
     final now = DateTime.now();

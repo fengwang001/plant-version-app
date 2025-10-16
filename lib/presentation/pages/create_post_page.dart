@@ -717,10 +717,13 @@ class CreatePostPage extends StatelessWidget {
                   duration: Duration(milliseconds: 200 + (index * 50)),
                   curve: Curves.easeOutBack,
                   builder: (context, value, child) {
+                    // 限制 value 在 0.0 到 1.0 之间
+                    final clampedValue = value.clamp(0.0, 1.0);
+                    
                     return Transform.scale(
-                      scale: 0.7 + (value * 0.3),
+                      scale: 0.7 + (clampedValue * 0.3),
                       child: Opacity(
-                        opacity: value,
+                        opacity: clampedValue,
                         child: child,
                       ),
                     );

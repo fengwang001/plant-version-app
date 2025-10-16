@@ -7,6 +7,11 @@ from sqlalchemy.ext.declarative import declared_attr
 from sqlalchemy.orm import DeclarativeBase
 
 
+def get_now() -> datetime:
+    """获取当前时间（自动使用系统时区）"""
+    return datetime.now()
+
+
 class Base(DeclarativeBase):
     """数据库模型基类"""
     
@@ -20,8 +25,8 @@ class Base(DeclarativeBase):
 
 class TimestampMixin:
     """时间戳混入类"""
-    created_at = Column(DateTime, default=datetime.utcnow, nullable=False)
-    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow, nullable=False)
+    created_at = Column(DateTime, default=get_now, nullable=False)
+    updated_at = Column(DateTime, default=get_now, onupdate=get_now, nullable=False)
 
 
 class UUIDMixin:
@@ -37,7 +42,7 @@ class SoftDeleteMixin:
     def soft_delete(self):
         """执行软删除"""
         self.is_deleted = True
-        self.deleted_at = datetime.utcnow()
+        self.deleted_at = get_now()
 
 
 class BaseModel(Base, TimestampMixin, UUIDMixin):

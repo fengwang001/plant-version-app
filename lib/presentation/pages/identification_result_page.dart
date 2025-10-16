@@ -157,21 +157,17 @@ class IdentificationResultPage extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // 图片展示
           _buildImageSection(),
-          const SizedBox(height: 24),
+          const SizedBox(height: 16),  // 改为 16（原来是 24）
           
-          // 识别结果选项卡
           _buildSuggestionTabs(controller),
-          const SizedBox(height: 20),
+          const SizedBox(height: 12),  // 改为 12（原来是 20）
           
-          // 植物详细信息
           Obx(() => _buildPlantDetails(result.suggestions[controller.selectedIndex.value])),
-          const SizedBox(height: 24),
+          const SizedBox(height: 16),  // 改为 16（原来是 24）
           
-          // 操作按钮
-          _buildActionButtons(controller),
-          const SizedBox(height: 32),
+          // _buildActionButtons(controller),
+          // const SizedBox(height: 24),  // 改为 24（原来是 32）
         ],
       ),
     );
@@ -180,7 +176,7 @@ class IdentificationResultPage extends StatelessWidget {
   Widget _buildImageSection() {
     return Container(
       width: double.infinity,
-      height: 200,
+      height: 180,
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(20),
         boxShadow: [
@@ -206,7 +202,7 @@ class IdentificationResultPage extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          '识别结果 (${result.suggestions.length})',
+          '识别结果',
           style: const TextStyle(
             fontSize: 18,
             fontWeight: FontWeight.w600,
@@ -234,7 +230,7 @@ class IdentificationResultPage extends StatelessWidget {
     );
   }
 
-  Widget _buildSuggestionCard(
+ Widget _buildSuggestionCard(
     PlantIdentification suggestion,
     int index,
     bool isSelected,
@@ -255,17 +251,18 @@ class IdentificationResultPage extends StatelessWidget {
         ),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
+          mainAxisSize: MainAxisSize.min,  // ✅ 添加这一行
           children: [
             Icon(
               Icons.local_florist_rounded,
-              size: 32,
+              size: 28,  // ✅ 改为 28（从 32）
               color: isSelected ? AppTheme.primaryGreen : AppTheme.textSecondary,
             ),
-            const SizedBox(height: 8),
+            const SizedBox(height: 6),  // ✅ 改为 6（从 8）
             Text(
               suggestion.commonName,
               style: TextStyle(
-                fontSize: 12,
+                fontSize: 11,  // ✅ 改为 11（从 12）
                 fontWeight: FontWeight.w500,
                 color: isSelected ? AppTheme.primaryGreen : AppTheme.textPrimary,
               ),
@@ -273,11 +270,11 @@ class IdentificationResultPage extends StatelessWidget {
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
             ),
-            const SizedBox(height: 4),
+            const SizedBox(height: 2),  // ✅ 改为 2（从 4）
             Text(
               '${(suggestion.confidence * 100).toInt()}%',
               style: TextStyle(
-                fontSize: 11,
+                fontSize: 10,  // ✅ 改为 10（从 11）
                 color: isSelected ? AppTheme.primaryGreen : AppTheme.textSecondary,
               ),
             ),
@@ -286,7 +283,6 @@ class IdentificationResultPage extends StatelessWidget {
       ),
     );
   }
-
   Widget _buildPlantDetails(PlantIdentification plant) {
     return Container(
       padding: const EdgeInsets.all(20),
@@ -348,7 +344,7 @@ class IdentificationResultPage extends StatelessWidget {
               ),
             ],
           ),
-          const SizedBox(height: 16),
+          const SizedBox(height: 12),
           
           // 植物描述
           if (plant.description != null) ...[

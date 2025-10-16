@@ -53,6 +53,7 @@ async def identify_plant(
     identification_service = PlantIdentificationService(db)
     
     try:
+        print(f"开始识别植物，用户ID: {current_user.id}")
         # 执行植物识别
         result = await identification_service.identify_plant(
             image_file=file,

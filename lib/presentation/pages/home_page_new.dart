@@ -6,7 +6,6 @@ import '../../data/models/plant_identification.dart';
 import '../../data/services/locale_service.dart';
 import '../../l10n/app_localizations.dart';
 import '../controllers/home_controller.dart';
-import '../../fitness_app/fitness_app_home_screen.dart';
 import 'plant_detail_page.dart';
 import 'popular_plants_page.dart';
 import 'identification_history_page.dart';
