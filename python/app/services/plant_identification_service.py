@@ -39,11 +39,11 @@ class PlantIdentificationService(BaseService[PlantIdentification]):
         
         print(f"🌱 开始植物识别流程")
         print(f"👤 用户ID: {user_id}")
-        print(f"📁 文件: {image_file.filename}")
+        print(f"📄 文件: {image_file.filename}")
         
         try:
-            # 1. 转换图片为 base64（添加 await！）
-            print(f"📸 开始转换图片为 base64")
+            # 1. 转换图片为 base64（添加 await）
+            print(f"🖼️ 开始转换图片为 base64")
             image_base64 = await self.image_to_base64(image_file)  # ✅ 添加 await
             print(f"✅ 图片转换完成，base64 长度: {len(image_base64)}")
             
@@ -89,7 +89,7 @@ class PlantIdentificationService(BaseService[PlantIdentification]):
                 longitude=longitude,
                 location_name=location_name,
                 identification_source="plant.id",
-                request_id=identification_result.get("id")
+                request_id=identification_result.get("access_token")
             )
             
             identification = await self._save_identification(user_id, identification_data)
@@ -133,13 +133,13 @@ class PlantIdentificationService(BaseService[PlantIdentification]):
     async def image_to_base64(self, file: UploadFile) -> str:
         """将 UploadFile 转换为 base64 Data URI 字符串"""
         try:
-            print(f"📸 读取图片文件: {file.filename}")
+            print(f"🖼️ 读取图片文件: {file.filename}")
             
             # 读取文件内容
             contents = await file.read()
             file_size = len(contents)
             
-            print(f"📸 文件大小: {file_size} bytes ({file_size / 1024:.2f} KB)")
+            print(f"🖼️ 文件大小: {file_size} bytes ({file_size / 1024:.2f} KB)")
             
             # 转换为 base64
             base64_encoded = base64.b64encode(contents).decode('utf-8')
@@ -279,7 +279,7 @@ class PlantIdentificationService(BaseService[PlantIdentification]):
                 "Content-Type": "application/json"
             }
             
-            # Plant.id API v3 的数据格式
+            # Plant.id API v5 的数据格式
             data = {
                 "images": [image_base64],  # Data URI 格式
                 "similar_images": True
@@ -289,7 +289,6 @@ class PlantIdentificationService(BaseService[PlantIdentification]):
             print(f"📤 请求数据大小: {len(json.dumps(data))} bytes")
             
             async with httpx.AsyncClient() as client:
-            
                 # response = await client.post(
                 #     f"{settings.plant_id_api_url}/identification",
                 #     headers=headers,
@@ -302,12 +301,12 @@ class PlantIdentificationService(BaseService[PlantIdentification]):
                 # if response.status_code == 200:
                 #     print("✅ Plant.id API 调用成功")
                 #     result = response.json()
-                #     print(f"📊 识别结果: {json.dumps(result, indent=2, ensure_ascii=False)}")
+                #     print(f"📊 识别结果: {json.dumps(result, indent=2, ensure_ascii=False)[:500]}...")
                 #     return result
                 # else:
-                    # print(f"❌ Plant.id API error: {response.status_code}")
-                    # print(f"❌ 响应内容: {response.text}")
-                    # print("⚠️ 使用模拟数据")
+                #     print(f"❌ Plant.id API error: {response.status_code}")
+                #     print(f"❌ 响应内容: {response.text}")
+                #     print("⚠️ 使用模拟数据")
                     return self._get_mock_plant_id_response()
                     
         except Exception as e:
@@ -318,32 +317,27 @@ class PlantIdentificationService(BaseService[PlantIdentification]):
             return self._get_mock_plant_id_response()
     
     def _get_mock_plant_id_response(self) -> Dict[str, Any]:
-        """获取模拟的 Plant.id API 响应"""
+        """获取模拟的 Plant.id API 响应（新格式）"""
         import random
+        from datetime import datetime, timezone
         
         print("🎭 生成模拟植物识别数据")
         
         mock_plants = [
             {
-                "species": {
-                    "scientificNameWithoutAuthor": "Rosa chinensis",
-                    "commonNames": ["月季花", "Chinese Rose", "月季"]
-                },
-                "probability": 0.85 + random.random() * 0.1
+                "id": "ddb53cc7376936dc",
+                "name": "Hibiscus rosa-sinensis",
+                "probability": 0.99
             },
             {
-                "species": {
-                    "scientificNameWithoutAuthor": "Ficus benjamina",
-                    "commonNames": ["榕树", "Weeping Fig", "垂叶榕"]
-                },
-                "probability": 0.80 + random.random() * 0.1
+                "id": "ficus-benjamina-001",
+                "name": "Ficus benjamina",
+                "probability": 0.85
             },
             {
-                "species": {
-                    "scientificNameWithoutAuthor": "Aloe vera",
-                    "commonNames": ["芦荟", "True Aloe", "库拉索芦荟"]
-                },
-                "probability": 0.75 + random.random() * 0.1
+                "id": "aloe-vera-001",
+                "name": "Aloe vera",
+                "probability": 0.75
             }
         ]
         
@@ -354,32 +348,81 @@ class PlantIdentificationService(BaseService[PlantIdentification]):
         # 按概率排序
         suggestions.sort(key=lambda x: x['probability'], reverse=True)
         
+        now = datetime.now(timezone.utc)
+        timestamp = now.timestamp()
+        
         return {
-            "id": f"mock_{random.randint(10000, 99999)}",
+            "access_token": f"mock_{random.randint(100000, 999999)}",
+            "model_version": "plant_id:5.0.0",
             "custom_id": None,
-            "meta_data": {},
-            "uploaded_datetime": "2025-10-15T13:45:56.000000",
-            "finished_datetime": "2025-10-15T13:45:58.000000",
-            "suggestions": suggestions
+            "result": {
+                "classification": {
+                    "suggestions": [
+                        {
+                            "id": plant["id"],
+                            "name": plant["name"],
+                            "probability": plant["probability"],
+                            "similar_images": [],
+                            "details": {
+                                "language": "en",
+                                "entity_id": plant["id"]
+                            }
+                        }
+                        for plant in suggestions
+                    ]
+                },
+                "is_plant": {
+                    "probability": 0.95,
+                    "threshold": 0.5,
+                    "binary": True
+                }
+            },
+            "status": "COMPLETED",
+            "created": timestamp,
+            "completed": timestamp
         }
     
     def _parse_identification_result(self, result: Dict[str, Any]) -> List[PlantIdentificationSuggestion]:
-        """解析识别结果"""
+        """解析识别结果（适配新的 API 格式）"""
         suggestions = []
         
-        for suggestion in result.get("suggestions", []):
-            species = suggestion.get("species", {})
-            scientific_name = species.get("scientificNameWithoutAuthor", "Unknown")
-            common_names = species.get("commonNames", [])
-            common_name = common_names[0] if common_names else scientific_name
-            confidence = suggestion.get("probability", 0.0)
+        print(f"📊 开始解析识别结果...")
+        print(f"结果数据: {json.dumps(result, indent=2, ensure_ascii=False)[:1000]}...")
+        
+        # 适配新格式：result -> result -> classification -> suggestions
+        try:
+            classification = result.get("result", {}).get("classification", {})
+            result_suggestions = classification.get("suggestions", [])
             
-            suggestions.append(PlantIdentificationSuggestion(
-                scientific_name=scientific_name,
-                common_name=common_name,
-                confidence=confidence,
-                plant_details=species
-            ))
+            for suggestion in result_suggestions:
+                # 新格式中 name 直接就是学名，不再是嵌套结构
+                scientific_name = suggestion.get("name", "Unknown")
+                confidence = suggestion.get("probability", 0.0)
+                
+                # 从 details 获取更多信息（如果有的话）
+                details = suggestion.get("details", {})
+                entity_id = details.get("entity_id", "")
+                
+                # 如果 common_name 不可用，使用学名
+                common_name = scientific_name
+                
+                suggestions.append(PlantIdentificationSuggestion(
+                    scientific_name=scientific_name,
+                    common_name=common_name,
+                    confidence=confidence,
+                    plant_details={
+                        "name": scientific_name,
+                        "entity_id": entity_id,
+                        "details": details
+                    }
+                ))
+            
+            print(f"✅ 成功解析 {len(suggestions)} 个建议")
+            
+        except Exception as e:
+            print(f"❌ 解析结果失败: {e}")
+            import traceback
+            traceback.print_exc()
         
         return suggestions
     

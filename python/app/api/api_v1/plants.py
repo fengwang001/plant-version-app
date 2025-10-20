@@ -1,6 +1,6 @@
 """植物相关 API"""
 from typing import Any, List, Optional
-from fastapi import APIRouter, Depends, HTTPException, status, File, UploadFile, Query
+from fastapi import APIRouter, Depends, HTTPException, status, File, UploadFile, Query, BackgroundTasks
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from ...core import deps
@@ -13,9 +13,27 @@ from ...schemas.plant import (
 )
 from ...services.plant_service import PlantService
 from ...services.plant_identification_service import PlantIdentificationService
+from ...services.plant_details_service import PlantDetailsService
 
 router = APIRouter()
 
+async def _enrich_plant_details(
+    db: AsyncSession,
+    scientific_name: str,
+    common_name: str,
+    user_id: str
+):
+    """后台任务：获取植物详细信息"""
+    try:
+        service = PlantDetailsService(db)
+        await service.enrich_plant_details(
+            scientific_name=scientific_name,
+            common_name=common_name,
+            user_id=user_id
+        )
+        print(f"✅ 植物详细信息已保存: {scientific_name}")
+    except Exception as e:
+        print(f"❌ 后台任务失败: {e}")
 
 @router.post("/identify", response_model=PlantIdentificationResponse, summary="植物识别")
 async def identify_plant(
@@ -24,7 +42,8 @@ async def identify_plant(
     longitude: Optional[float] = None,
     location_name: Optional[str] = None,
     current_user: User = Depends(deps.get_current_user),
-    db: AsyncSession = Depends(deps.get_db)
+    db: AsyncSession = Depends(deps.get_db),
+    background_tasks: BackgroundTasks  = BackgroundTasks()  # ✅ 正确的方式（无默认值）
 ) -> Any:
     """
     上传植物图片进行识别
@@ -52,24 +71,25 @@ async def identify_plant(
     
     identification_service = PlantIdentificationService(db)
     
-    try:
-        print(f"开始识别植物，用户ID: {current_user.id}")
-        # 执行植物识别
-        result = await identification_service.identify_plant(
-            image_file=file,
-            user_id=current_user.id,
-            latitude=latitude,
-            longitude=longitude,
-            location_name=location_name
+    result = await identification_service.identify_plant(
+        image_file=file,
+        user_id=current_user.id,
+        latitude=latitude,
+        longitude=longitude,
+        location_name=location_name
+    )
+    
+    # 后台异步获取详细信息
+    if background_tasks and result.scientific_name:
+        background_tasks.add_task(
+            _enrich_plant_details,
+            db=db,
+            scientific_name=result.scientific_name,
+            common_name=result.common_name,
+            user_id=current_user.id
         )
-        
-        return result
-        
-    except Exception as e:
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"植物识别失败: {str(e)}"
-        )
+    
+    return result
 
 
 @router.get("/identifications", response_model=List[PlantIdentificationResponse], summary="识别历史")

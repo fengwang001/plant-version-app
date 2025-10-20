@@ -23,6 +23,7 @@ class HomeController extends GetxController {
   @override
   void onInit() {
     super.onInit();
+    print('🏠 HomeController 开始初始化...');
     _checkAuthentication();
     print('🏠 HomeController 初始化完成');
     _loadDataSequentially();

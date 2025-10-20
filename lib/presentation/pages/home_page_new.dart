@@ -72,9 +72,7 @@ class _MyHomePageNewState extends State<HomePageNew>
 
   @override
   Widget build(BuildContext context) {
-    final controller = Get.isRegistered<HomeController>()
-        ? Get.find<HomeController>()
-        : Get.put(HomeController());
+    final controller = Get.find<HomeController>();
 
     return Scaffold(
       backgroundColor: const Color(0xFFF2F3F8),
@@ -101,6 +99,7 @@ class _MyHomePageNewState extends State<HomePageNew>
                         // Hero区域 - 快速操作卡片
                         _buildQuickActionsCard(context, controller),
                         const SizedBox(height: 24),
+                        
                         
                         // 推荐植物
                         _buildFeaturedPlantSection(context, controller),
@@ -418,7 +417,7 @@ class _MyHomePageNewState extends State<HomePageNew>
   /// 构建推荐植物区域
   Widget _buildFeaturedPlantSection(BuildContext context, HomeController controller) {
     final localizations = AppLocalizations.of(context)!;
-    
+    print('🏠 构建推荐植物区域');
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [

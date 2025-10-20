@@ -120,6 +120,11 @@ class _FitnessAppHomeScreenState extends State<FitnessAppHomeScreen>
     tabIconsList[0].isSelected = true;
 
     animationController = AnimationController( duration: const Duration(milliseconds: 600), vsync: this);
+    // ✅ 关键修改：提前注册 HomeController
+    if (!Get.isRegistered<HomeController>()) {
+      print('📝 注册 HomeController...');
+      Get.put(HomeController(), permanent: true);
+    }
     tabBody = HomePageNew(animationController: animationController);
     
     isLoggedIn = true;

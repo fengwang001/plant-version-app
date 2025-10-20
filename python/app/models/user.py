@@ -53,6 +53,11 @@ class User(BaseModel, SoftDeleteMixin):
     posts = relationship("Post", back_populates="author", lazy="dynamic")
     post_likes = relationship("PostLike", back_populates="user", lazy="dynamic")
     post_comments = relationship("PostComment", back_populates="user", foreign_keys="PostComment.user_id", lazy="dynamic")
+    plant_identifications = relationship(
+       "PlantIdentification",
+       back_populates="user",
+       cascade="all, delete-orphan"
+   )
     
     def __repr__(self) -> str:
         return f"<User(id={self.id}, email={self.email}, username={self.username})>"

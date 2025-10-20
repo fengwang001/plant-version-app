@@ -73,56 +73,55 @@ class PlantCreate(PlantBase):
             return urls
         return value
 
-
-class PlantResponse(PlantBase):
-    """植物响应信息"""
+class PlantResponse(BaseModel):
+    """植物详细信息响应 - 完整版"""
     id: str
+    scientific_name: str
+    common_name: str
+    family: Optional[str] = None
+    genus: Optional[str] = None
+    species: Optional[str] = None
+    
+    # 描述和特征
     description: Optional[str] = None
-    characteristics: Optional[List[str]] = None
-    care_info: Optional[PlantCareInfo] = None
-    primary_image_url: Optional[str] = None
-    image_urls: Optional[List[str]] = None
+    characteristics: List[str] = []
+    
+    # 养护指南
+    care_guide: Optional[Dict[str, Any]] = None
+    
+    # 植物信息
     plant_type: Optional[str] = None
     habitat: Optional[str] = None
     origin: Optional[str] = None
-    identification_count: int
-    view_count: int
-    is_verified: bool
-    is_featured: bool
+    propagation_method: Optional[str] = None
+    common_pests: List[str] = []
+    
+    # 高度和花期
+    height_range: Optional[str] = None
+    blooming_period: Optional[str] = None
+    
+    # 安全信息
+    toxicity: bool = False
+    toxicity_description: Optional[str] = None
+    
+    # 图片和四季信息
+    primary_image_url: Optional[str] = None
+    image_urls: List[str] = []
+    seasonal_images: Optional[Dict[str, List[Dict[str, str]]]] = None
+    
+    # 元数据
+    is_verified: bool = False
+    is_featured: bool = False
+    view_count: int = 0
+    identification_count: int = 0
+    
     created_at: datetime
     updated_at: datetime
     
     class Config:
         from_attributes = True
 
-    # 兼容数据库 JSON，统一为 List[str]
-    @validator('image_urls', pre=True)
-    def normalize_image_urls_on_response(cls, value):
-        """将 image_urls 统一转换为 List[str] 以通过校验"""
-        if value is None:
-            return None
-        if isinstance(value, str):
-            try:
-                parsed = json.loads(value)
-                value = parsed
-            except Exception:
-                return [value]
-        if isinstance(value, dict):
-            url = value.get('url') or value.get('href') or value.get('src')
-            return [url] if url else []
-        if isinstance(value, list):
-            urls: List[str] = []
-            for item in value:
-                if isinstance(item, str):
-                    urls.append(item)
-                elif isinstance(item, dict):
-                    u = item.get('url') or item.get('href') or item.get('src')
-                    if u:
-                        urls.append(u)
-            return urls
-        return value
-
-
+        
 class PlantSearchItem(BaseModel):
     """植物搜索项"""
     id: str
