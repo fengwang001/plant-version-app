@@ -99,8 +99,7 @@ class _MyHomePageNewState extends State<HomePageNew>
                         // Hero区域 - 快速操作卡片
                         _buildQuickActionsCard(context, controller),
                         const SizedBox(height: 24),
-                        
-                        
+
                         // 推荐植物
                         _buildFeaturedPlantSection(context, controller),
                         const SizedBox(height: 24),
@@ -417,7 +416,7 @@ class _MyHomePageNewState extends State<HomePageNew>
   /// 构建推荐植物区域
   Widget _buildFeaturedPlantSection(BuildContext context, HomeController controller) {
     final localizations = AppLocalizations.of(context)!;
-    print('🏠 构建推荐植物区域');
+    print('🏠 构建推荐植物区域${controller.isLoadingFeatured.value}');
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
