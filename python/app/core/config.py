@@ -38,7 +38,7 @@ class Settings(BaseSettings):
     aws_endpoint_url: Optional[str] = Field(default=None, alias="AWS_ENDPOINT_URL")
 
       # OpenAI API 配置（新增）
-    OPENAI_API_KEY: str = "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"
+    OPENAI_API_KEY: str = ""
     OPENAI_API_URL: str = "https://api.openai.com/v1"
     OPENAI_MODEL: str = "gpt-4-turbo-preview"
     
