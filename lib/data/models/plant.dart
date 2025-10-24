@@ -6,8 +6,8 @@ class Plant {
   final String? genus;
   final String? species;
   final String? description;
-  final Map<String, dynamic>? characteristics;
-  final Map<String, dynamic>? careInfo;
+  final List<dynamic>? characteristics;
+  final List<Map<String, dynamic>>? careInfo;
   final String? primaryImageUrl;
   final List<String>? imageUrls;
   final String? plantType;
@@ -45,6 +45,7 @@ class Plant {
 
   /// 从API JSON创建实例
   factory Plant.fromApiJson(Map<String, dynamic> json) {
+    print( '🌿 解析植物数据: $json' );
     return Plant(
       id: json['id'] as String,
       scientificName: json['scientific_name'] as String,
@@ -53,8 +54,8 @@ class Plant {
       genus: json['genus'] as String?,
       species: json['species'] as String?,
       description: json['description'] as String?,
-      characteristics: json['characteristics'] as Map<String, dynamic>?,
-      careInfo: json['care_info'] as Map<String, dynamic>?,
+      characteristics: json['characteristics'] as List<dynamic>?,
+      // careInfo: json['care_info'] as List<Map<String, dynamic>>?,
       primaryImageUrl: json['primary_image_url'] as String?,
       imageUrls: json['image_urls'] != null 
           ? List<String>.from(json['image_urls']) 
@@ -82,7 +83,7 @@ class Plant {
       'species': species,
       'description': description,
       'characteristics': characteristics,
-      'care_info': careInfo,
+      // 'care_info': careInfo,
       'primary_image_url': primaryImageUrl,
       'image_urls': imageUrls,
       'plant_type': plantType,
@@ -114,32 +115,32 @@ class Plant {
   }
 
   /// 获取主要特征
-  List<String> get mainCharacteristics {
-    if (characteristics == null) return [];
+  // List<String> get mainCharacteristics {
+  //   if (characteristics == null) return [];
     
-    final List<String> features = [];
-    characteristics!.forEach((key, value) {
-      if (value != null && value.toString().isNotEmpty) {
-        features.add('$key: $value');
-      }
-    });
+  //   final List<String> features = [];
+  //   characteristics!.forEach((key, value) {
+  //     if (value != null && value.toString().isNotEmpty) {
+  //       features.add('$key: $value');
+  //     }
+  //   });
     
-    return features.take(3).toList(); // 只返回前3个特征
-  }
+  //   return features.take(3).toList(); // 只返回前3个特征
+  // }
 
   /// 获取护理要点
-  List<String> get carePoints {
-    if (careInfo == null) return [];
+  // List<String> get carePoints {
+  //   if (careInfo == null) return [];
     
-    final List<String> points = [];
-    careInfo!.forEach((key, value) {
-      if (value != null && value.toString().isNotEmpty) {
-        points.add('$key: $value');
-      }
-    });
+  //   final List<String> points = [];
+  //   careInfo!.forEach((key, value) {
+  //     if (value != null && value.toString().isNotEmpty) {
+  //       points.add('$key: $value');
+  //     }
+  //   });
     
-    return points;
-  }
+  //   return points;
+  // }
 
   /// 是否有图片
   bool get hasImage => primaryImageUrl != null && primaryImageUrl!.isNotEmpty;

@@ -2,6 +2,7 @@
 import json
 import httpx
 import base64
+import asyncio
 from typing import List, Optional, Dict, Any
 from fastapi import UploadFile, HTTPException
 from sqlalchemy import select, desc
@@ -10,6 +11,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from .base_service import BaseService
 from .user_service import UserService
 from .media_service import MediaService
+from .plant_details_service import PlantDetailsService
 from ..models.plant import PlantIdentification, Plant
 from ..schemas.plant import (
     PlantIdentificationResponse, 
@@ -26,6 +28,7 @@ class PlantIdentificationService(BaseService[PlantIdentification]):
         super().__init__(db, PlantIdentification)
         self.user_service = UserService(db)
         self.media_service = MediaService(db)
+        self.plant_details_service = PlantDetailsService(db)
     
     async def identify_plant(
         self,
@@ -68,14 +71,24 @@ class PlantIdentificationService(BaseService[PlantIdentification]):
             best_suggestion = suggestions[0]
             print(f"🌿 最佳匹配: {best_suggestion.common_name} ({best_suggestion.scientific_name})")
             print(f"📊 置信度: {best_suggestion.confidence:.2%}")
-            
-            # 5. 上传图片到 S3（保存记录用）
-            print(f"📤 上传图片到 S3")
-            media_file = await self.media_service.upload_file_to_s3(
-                file=image_file,
-                user_id=user_id,
-                file_purpose="plant_image"
+
+            # 异步丰富植物详情，没有则调用openAi获取
+            asyncio.create_task(
+                self.plant_details_service.enrich_plant_details(best_suggestion)
             )
+
+            # 5. 上传图片到 S3
+            print(f"📤 上传图片到 S3")
+            upload_task = asyncio.create_task(
+                self.media_service.upload_file_to_s3(
+                    file=image_file,
+                    user_id=user_id,
+                    file_purpose="plant_image"
+                )
+            )
+
+            media_file = await asyncio.gather(upload_task)
+            media_file = media_file[0]
             print(f"✅ 图片已保存: {media_file.file_url}")
             
             # 6. 保存识别记录
@@ -185,7 +198,7 @@ class PlantIdentificationService(BaseService[PlantIdentification]):
                 scientific_name=identification.scientific_name,
                 common_name=identification.common_name,
                 confidence=identification.confidence,
-                image_url=identification.image_url,
+                image_url= identification.image_url or [],
                 suggestions=identification.suggestions,
                 user_feedback=identification.user_feedback,
                 user_notes=identification.user_notes,
@@ -456,7 +469,7 @@ class PlantIdentificationService(BaseService[PlantIdentification]):
                 "characteristics": plant.characteristics,
                 "care_info": plant.care_info,
                 "primary_image_url": plant.primary_image_url,
-                "image_urls": plant.image_urls,
+                "image_urls": plant.image_urls or [],
                 "plant_type": plant.plant_type,
                 "habitat": plant.habitat,
                 "origin": plant.origin,

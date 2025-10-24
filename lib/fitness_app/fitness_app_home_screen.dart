@@ -3,7 +3,6 @@ import 'package:flutter_application_1/fitness_app/training/training_screen.dart'
 import 'package:flutter/material.dart';
 import 'package:flutter_application_1/fitness_app/bottom_navigation_view/bottom_bar_view.dart';
 import 'fitness_app_theme.dart';
-// import 'package:flutter_application_1/fitness_app/my_diary/my_diary_screen.dart';
 import 'package:flutter_application_1/presentation/pages/home_page_new.dart';
 import 'package:flutter_application_1/presentation/pages/login_page.dart';
 import 'package:flutter_application_1/presentation/pages/profile_page.dart';
@@ -66,9 +65,9 @@ class AppNavigationController extends GetxController {
 class _FitnessAppHomeScreenState extends State<FitnessAppHomeScreen>
     with TickerProviderStateMixin {
   AnimationController? animationController;
-  bool isAnimating = false; // 添加动画状态标志
-  bool isLoggedIn = false; // 登录状态
-  bool isInitialized = false; // 初始化状态
+  bool isAnimating = false;
+  bool isLoggedIn = false;
+  bool isInitialized = false;
 
   List<TabIconData> tabIconsList = TabIconData.tabIconsList;
 
@@ -114,20 +113,54 @@ class _FitnessAppHomeScreenState extends State<FitnessAppHomeScreen>
 
   /// 初始化主应用
   void _initializeMainApp() {
+    print('🚀 _initializeMainApp 开始');
+    
     tabIconsList.forEach((TabIconData tab) {
       tab.isSelected = false;
     });
     tabIconsList[0].isSelected = true;
 
-    animationController = AnimationController( duration: const Duration(milliseconds: 600), vsync: this);
-    // ✅ 关键修改：提前注册 HomeController
+    animationController = AnimationController(
+      duration: const Duration(milliseconds: 600),
+      vsync: this,
+    );
+    
+    // ✅ 关键改动1：先注册 HomeController
     if (!Get.isRegistered<HomeController>()) {
       print('📝 注册 HomeController...');
       Get.put(HomeController(), permanent: true);
     }
+    
+    // ✅ 关键改动2：立即加载数据（不依赖 HomeController.onInit）
+    print('📡 立即触发数据加载...');
+    _loadHomeScreenData();
+    
+    // ✅ 关键改动3：创建 HomePageNew
     tabBody = HomePageNew(animationController: animationController);
     
     isLoggedIn = true;
+    print('✅ _initializeMainApp 完成');
+  }
+
+  /// 立即加载首屏数据
+  Future<void> _loadHomeScreenData() async {
+    try {
+      final controller = Get.find<HomeController>();
+      
+      print('🔄 [FitnessAppHomeScreen] 开始加载首屏数据...');
+      
+      // 并行加载两个数据源
+      await Future.wait([
+        controller.loadRecentHistory(),
+        controller.loadFeaturedPlants(),
+      ], eagerError: false);
+      
+      print('✅ [FitnessAppHomeScreen] 首屏数据加载完成');
+      
+    } catch (e) {
+      print('❌ [FitnessAppHomeScreen] 首屏数据加载失败: $e');
+      // 不中断流程，继续显示空状态
+    }
   }
 
   /// 显示登录屏幕
@@ -177,8 +210,8 @@ class _FitnessAppHomeScreenState extends State<FitnessAppHomeScreen>
             } else {
               return Stack(
                 children: <Widget>[
-                  tabBody, // 主内容区域
-                  bottomBar(), // 底部导航栏
+                  tabBody,
+                  bottomBar(),
                 ],
               );
             }
@@ -237,14 +270,13 @@ class _FitnessAppHomeScreenState extends State<FitnessAppHomeScreen>
     );
   }
 
-  Future<bool> getData() async { // 模拟异步数据获取
-    await Future<dynamic>.delayed(const Duration(milliseconds: 200)); //
+  Future<bool> getData() async {
+    await Future<dynamic>.delayed(const Duration(milliseconds: 200));
     return true;
   }
 
   /// 安全的标签页切换处理
   Future<void> _handleTabChange(int index) async {
-    // 防止重复点击导致的竞态条件
     if (isAnimating) {
       return;
     }
@@ -252,7 +284,6 @@ class _FitnessAppHomeScreenState extends State<FitnessAppHomeScreen>
     try {
       isAnimating = true;
       
-      // 使用 Future.microtask 确保在下一个事件循环中执行
       await Future.microtask(() async {
         if (!mounted) return;
         
@@ -261,13 +292,11 @@ class _FitnessAppHomeScreenState extends State<FitnessAppHomeScreen>
         if (!mounted) return;
         
         setState(() {
-          if (index == 0 ) {
+          if (index == 0) {
             tabBody = HomePageNew(animationController: animationController);
           } else if (index == 1) {
-            // tabBody = TrainingScreen(animationController: animationController);
-             tabBody = ExplorePage();
+            tabBody = ExplorePage();
           } else if (index == 2) {
-            // tabBody = CommunityPage(animationController: animationController);
             tabBody = CommunityPage();
           } else if (index == 3) {
             tabBody = ProfilePage(animationController: animationController);
@@ -302,7 +331,6 @@ class _FitnessAppHomeScreenState extends State<FitnessAppHomeScreen>
     print('📍 当前时间: ${DateTime.now()}');
     
     try {
-      // 检查 HomeController 是否已注册
       if (!Get.isRegistered<HomeController>()) {
         print('⚠️ HomeController 未注册，正在注册...');
         Get.put(HomeController());

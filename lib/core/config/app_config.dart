@@ -23,8 +23,9 @@ class AppConfig {
   String get apiBaseUrl {
     return const String.fromEnvironment(
       'API_BASE_URL',
-      // defaultValue: 'http://192.168.0.184:8000',
-      defaultValue: 'http://172.20.10.7:8000',
+      defaultValue: 'http://192.168.0.184:8000', // mengen
+      // defaultValue: 'http://172.20.10.7:8000',
+      // defaultValue: 'http://192.168.31.189:8000', // 804
       
       // 192.168.31.189
     );

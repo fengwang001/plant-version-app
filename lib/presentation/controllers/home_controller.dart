@@ -24,14 +24,9 @@ class HomeController extends GetxController {
   @override
   void onInit() {
     super.onInit();
-    print('🏠 HomeController.onInit() 开始执行');
+    print('🏠 HomeController.onInit() 被调用');
     _checkAuthentication();
-    
-    // 延迟到下一帧，确保 UI 的 Obx 已建立监听
-    Future.delayed(Duration.zero, () {
-      print('🏠 开始加载首屏数据...');
-      _loadDataSequentially();
-    });
+    // ✅ 注意：数据加载由 FitnessAppHomeScreen 直接调用，这里不重复加载
   }
 
   @override
@@ -40,7 +35,8 @@ class HomeController extends GetxController {
     print('🏠 HomeController 被关闭');
   }
 
-  /// 按顺序加载数据
+  /// 按顺序加载数据 (已弃用，由 FitnessAppHomeScreen 直接调用各个加载方法)
+  @Deprecated('Use loadRecentHistory() and loadFeaturedPlants() directly')
   Future<void> _loadDataSequentially() async {
     if (_isInitialLoadComplete) {
       print('⚠️ 初始加载已完成，跳过重复加载');
@@ -50,16 +46,18 @@ class HomeController extends GetxController {
     try {
       print('🔄 ===== 开始按顺序加载首屏数据 =====');
       
-      // 并行加载两个数据源
-      await Future.wait([
+      final results = await Future.wait([
         loadRecentHistory(),
         loadFeaturedPlants(),
-      ]);
+      ], eagerError: false);
       
       _isInitialLoadComplete = true;
       print('✅ ===== 首屏数据加载完成 =====');
+      print('📊 加载结果 - 识别历史: ${recentHistory.length}, 推荐植物: ${featuredPlants.length}');
+      
     } catch (e) {
       print('❌ 首屏数据加载失败: $e');
+      _isInitialLoadComplete = true;
     }
   }
 
@@ -103,6 +101,8 @@ class HomeController extends GetxController {
         recentHistory.value = history;
         print('✅ [成功] 获取到 ${history.length} 条识别记录');
         print('📋 最新记录: ${history.first.commonName}');
+        // ✅ 关键：手动触发 Obx 的重建
+        recentHistory.refresh();
       }
 
     } on TimeoutException catch (e) {
@@ -155,6 +155,8 @@ class HomeController extends GetxController {
         featuredPlants.value = plants;
         print('✅ [成功] 获取到 ${plants.length} 个推荐植物');
         print('🌟 推荐植物: ${plants.map((p) => p.commonName).join(', ')}');
+        // ✅ 关键：手动触发 Obx 的重建
+        featuredPlants.refresh();
       }
 
     } on TimeoutException catch (e) {

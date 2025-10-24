@@ -313,6 +313,8 @@ class PlantDetailsService(BaseService[Plant]):
             "scientific_name": plant.scientific_name,
             "common_name": plant.common_name,
             "family": plant.family,
+            "genus": plant.genus,
+            "species": plant.species,
             "description": plant.description,
             "characteristics": plant.characteristics or [],
             "care_guide": plant.care_info or {},

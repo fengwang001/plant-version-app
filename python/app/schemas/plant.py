@@ -1,7 +1,7 @@
 """植物相关的 Pydantic 模式"""
 from datetime import datetime
 from typing import List, Optional, Dict, Any
-from pydantic import BaseModel, Field, validator
+from pydantic import BaseModel, Field, validator, field_validator
 import json
 
 
@@ -22,57 +22,6 @@ class PlantBase(BaseModel):
     genus: Optional[str] = Field(None, description="属")
     species: Optional[str] = Field(None, description="种")
 
-
-class PlantCreate(PlantBase):
-    """创建植物"""
-    description: Optional[str] = None
-    characteristics: Optional[List[str]] = None
-    care_info: Optional[PlantCareInfo] = None
-    primary_image_url: Optional[str] = None
-    image_urls: Optional[List[str]] = None
-    plant_type: Optional[str] = None
-    habitat: Optional[str] = None
-    origin: Optional[str] = None
-    data_source: Optional[str] = None
-    external_id: Optional[str] = None
-
-    # 兼容数据库中 JSON 各种形态，统一为字符串列表
-    @validator('image_urls', pre=True)
-    def normalize_image_urls_on_create(cls, value):
-        """将 image_urls 统一转换为 List[str]
-        支持以下输入：
-        - None
-        - str（如果是单个 URL 或 JSON 字符串）
-        - dict（例如 {"url": "..."}）
-        - list[str]
-        - list[dict]（例如 [{"url": "..."}, ...]）
-        """
-        if value is None:
-            return None
-        # 如果是字符串，尝试作为 JSON 解析，否则当作单个 URL
-        if isinstance(value, str):
-            try:
-                parsed = json.loads(value)
-                value = parsed
-            except Exception:
-                return [value]
-        # dict -> 提取常见键
-        if isinstance(value, dict):
-            url = value.get('url') or value.get('href') or value.get('src')
-            return [url] if url else []
-        # list -> 逐项规范化
-        if isinstance(value, list):
-            urls: List[str] = []
-            for item in value:
-                if isinstance(item, str):
-                    urls.append(item)
-                elif isinstance(item, dict):
-                    u = item.get('url') or item.get('href') or item.get('src')
-                    if u:
-                        urls.append(u)
-            return urls
-        return value
-
 class PlantResponse(BaseModel):
     """植物详细信息响应 - 完整版"""
     id: str
@@ -84,7 +33,7 @@ class PlantResponse(BaseModel):
     
     # 描述和特征
     description: Optional[str] = None
-    characteristics: List[str] = []
+    characteristics: List[str] = Field(default_factory=list)
     
     # 养护指南
     care_guide: Optional[Dict[str, Any]] = None
@@ -94,7 +43,7 @@ class PlantResponse(BaseModel):
     habitat: Optional[str] = None
     origin: Optional[str] = None
     propagation_method: Optional[str] = None
-    common_pests: List[str] = []
+    common_pests: List[str] = Field(default_factory=list)
     
     # 高度和花期
     height_range: Optional[str] = None
@@ -117,6 +66,18 @@ class PlantResponse(BaseModel):
     
     created_at: datetime
     updated_at: datetime
+    
+    @field_validator('characteristics', 'common_pests', 'image_urls', mode='before')
+    @classmethod
+    def ensure_list_not_none(cls, v):
+        """确保列表字段不为 None"""
+        return v if v is not None else []
+    
+    @field_validator('toxicity', mode='before')
+    @classmethod
+    def ensure_bool_not_none(cls, v):
+        """确保布尔字段不为 None"""
+        return v if v is not None else False
     
     class Config:
         from_attributes = True
